@@ -21,11 +21,16 @@ from core.plugin_loader import load_plugins
 from core.critic import critique
 from tools.search import search_summary
 from tools.vision import look
-from core.llm import ask_groq as ask
+from core.llm import ask_cerebras, ask_groq
 from tools.sidecar import click, type_text, screenshot, scroll, drag, hotkey
 from tools.filesystem import read_file, write_file, list_dir, delete_file
 from tools.shell import run_shell
 
+def ask(prompt: str, system: str = "", max_tokens: int = 150) -> str:
+    result = ask_cerebras(prompt, system, max_tokens)
+    if result.startswith("LLM_ERROR"):
+        result = ask_groq(prompt, system, max_tokens)
+    return result
 
 def _build_system_prompt() -> str:
     """
