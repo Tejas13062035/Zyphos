@@ -220,7 +220,7 @@ def smart_execute(task: Union[dict, str]) -> dict:
         ]
         original_goal = desc.lower()
         if any(t in original_goal for t in speak_triggers):
-            if tool not in ["joke", "speak", "text_to_speech", "type_text", "screenshot", "click", "hotkey", "music"]:
+            if tool not in ["joke", "wisdom", "speak", "text_to_speech", "type_text", "screenshot", "click", "hotkey", "music"]:
                 result_text = ""
                 if isinstance(result, dict):
                     result_text = (
@@ -253,9 +253,19 @@ def smart_execute_with_critique(task: Union[dict, str], max_retries: int = 2) ->
         inner = result.get("result", {})
         # Build the description for the critique call
         description = task if isinstance(task, str) else task.get("description", "")
+
+        if isinstance(inner, dict):
+            critique_result_str = inner.get("result", str(inner))
+        else:
+            critique_result_str = str(inner)
+
+        # strip large base64/binary payloads before sending to critic
+        if len(critique_result_str) > 500:
+            critique_result_str = critique_result_str[:500] + "...[truncated for critic]"
+
         verdict = critique(
             task=description,
-            result=inner.get("result", str(inner)) if isinstance(inner, dict) else str(inner),
+            result=critique_result_str,
             tool=inner.get("tool", "") if isinstance(inner, dict) else "",
             args=inner.get("args", {}) if isinstance(inner, dict) else {}
         )
