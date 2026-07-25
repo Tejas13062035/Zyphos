@@ -43,6 +43,46 @@ def main():
         print("Usage: python zyphos.py 'goal1' 'goal2' ...")
         return
 
+    if sys.argv[1] in ("--help", "-h"):
+        print("""
+Z.Y.P.H.O.S — Usage
+
+BASIC:
+  zyphos.py "goal"                    Run goal with keyword executor
+  zyphos.py --smart "goal"            Run goal with LLM tool selection
+  zyphos.py --smart-plan "goal"       Run goal with LLM task planning
+  zyphos.py --critique "goal"         Enable self-critique + retries
+  zyphos.py --chain "goal"            Enable goal chaining after execution
+
+VOICE:
+  zyphos.py --listen                  Voice input with biometric auth
+
+DAEMON:
+  zyphos.py --daemon                  Start background daemon
+  zyphos.py --stop                    Stop daemon
+  zyphos.py --restart                 Restart daemon
+  zyphos.py --send "goal"             Queue a goal to the daemon
+  zyphos.py --smart-daemon            Enable smart mode in daemon
+  zyphos.py --smart-daemon --off      Disable smart mode in daemon
+  zyphos.py --status                  Show daemon + recent memory
+
+MEMORY:
+  zyphos.py --memory "query"          Semantic search past goals
+  zyphos.py --forget "query"          Delete matching memory entries
+
+SCHEDULING:
+  zyphos.py --schedule "goal" --every SECONDS
+  zyphos.py --schedule "goal" --at HH:MM
+  zyphos.py --schedule "goal" --at HH:MM --bg
+
+MONITORING:
+  zyphos.py --watchdog                Start auto-restart watchdog
+
+OTHER:
+  zyphos.py --help                    Show this message
+""")
+        return
+
     if sys.argv[1] == "--status":
         pid = get_pid()
         running = is_running()
