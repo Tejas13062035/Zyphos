@@ -125,3 +125,34 @@ def recall(query: str, top_k: int = 5) -> list:
         if 0 <= idx < len(entries):
             results.append(entries[idx])
     return results
+
+def forget(query: str) -> int:
+    """
+    Deletes memory entries matching the query (exact substring match on goal text).
+    Rebuilds the FAISS index after deletion.
+    Returns the number of entries deleted.
+    """
+    global _index, _entries
+    import faiss
+
+    entries = _load_entries()
+    original_count = len(entries)
+
+    remaining = [e for e in entries if query.lower() not in e["goal"].lower()]
+    deleted_count = original_count - len(remaining)
+
+    if deleted_count == 0:
+        return 0
+
+    _save_entries(remaining)
+    _entries = remaining
+
+    # rebuild index from scratch
+    model = _get_model()
+    _index = faiss.IndexFlatL2(384)
+    if remaining:
+        vectors = model.encode([e["goal"] for e in remaining]).astype("float32")
+        _index.add(vectors)
+
+    faiss.write_index(_index, INDEX_FILE)
+    return deleted_count

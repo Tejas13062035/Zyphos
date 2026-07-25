@@ -4,6 +4,7 @@ import time
 from tools.stt import listen
 from core.voice_auth import enroll, verify, is_enrolled
 from core.explainer import explain
+from memory.store import save, recall, forget
 from core.chainer import chain
 from core.smart_executor import smart_execute, smart_execute_with_critique
 from core.smart_planner import smart_plan
@@ -60,6 +61,15 @@ def main():
             print(f"  [{e['timestamp']}] {e['goal']}")
             for t in e.get("tasks", []):
                 print(f"    - {t}")
+        return
+
+    if sys.argv[1] == "--forget":
+        query = " ".join(sys.argv[2:])
+        if not query:
+            print("ERROR: --forget needs a query, e.g. --forget \"test goal\"")
+            return
+        count = forget(query)
+        print(f"FORGET: deleted {count} matching entries")
         return
 
     if sys.argv[1] == "--daemon":
