@@ -50,6 +50,8 @@ for i in {1..20}; do
 done
 end_time=$(date +%s)
 echo "Queued 20 goals in $((end_time - start_time))s"
+echo "Clearing test queue to prevent daemon from processing junk goals later..."
+echo "" > ~/zyp/state/pending_goals.txt
 
 echo ""
 echo "--- TEST 4: Memory Recall Speed at Scale ---"
@@ -99,6 +101,10 @@ echo "--- TEST 7: Daemon + Watchdog + Reminder Health Check ---"
 pgrep -f "zyphos.py --daemon" > /dev/null && echo "Daemon: RUNNING" || echo "Daemon: NOT RUNNING"
 pgrep -f "event_reminder.py" > /dev/null && echo "Reminder: RUNNING" || echo "Reminder: NOT RUNNING"
 pgrep -f "watchdog.py" > /dev/null && echo "Watchdog: RUNNING" || echo "Watchdog: NOT RUNNING"
+
+echo ""
+echo "--- CLEANUP ---"
+python zyphos.py --forget "test goal" 2>&1 | grep FORGET
 
 echo ""
 echo "========================================"
