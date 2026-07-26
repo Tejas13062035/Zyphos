@@ -27,7 +27,7 @@ goals=(
     "translate hello to spanish"
     "what is the weather in Delhi"
     "search for rust programming language"
-    "tell me a philosophical quote about time"
+    "tell me a philosophical quote"
     "generate a qr code for https://github.com"
     "what country is Paris in"
     "get github stats for torvalds/linux"
@@ -36,7 +36,7 @@ goals=(
 start_time=$(date +%s)
 for goal in "${goals[@]}"; do
     echo ">>> $goal"
-    timeout 60 python zyphos.py --smart --smart-plan --critique "$goal" 2>&1 | grep -E "✓|CRITIC|GOAL|error|Error|Traceback" | head -5
+    timeout 60 python zyphos.py --smart --smart-plan --critique "$goal" 2>&1 | grep -E "✓|CRITIC|GOAL|error|Error|Traceback" | head -8
     echo "---"
 done
 end_time=$(date +%s)
@@ -91,7 +91,7 @@ edge_goals=(
 )
 for goal in "${edge_goals[@]}"; do
     echo ">>> $goal"
-    timeout 30 python zyphos.py --smart --smart-plan "$goal" 2>&1 | grep -E "✓|error|Error|Traceback" | head -3
+    timeout 30 python zyphos.py --smart --smart-plan "$goal" 2>&1 | grep -E "✓|error|Error|Traceback" | head -8
 done
 
 echo ""

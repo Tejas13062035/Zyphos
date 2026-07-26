@@ -169,7 +169,7 @@ def smart_execute(task: Union[dict, str]) -> dict:
     # Tools that require extra verification before execution
     SENSITIVE_TOOLS = ["gmail", "drive", "calendar", "notes", "whatsapp_bulk", "delete_file"]
 
-    response = ask(desc, system=_build_system_prompt(), max_tokens=100)
+    response = ask(desc, system=_build_system_prompt(), max_tokens=250)
 
     try:
         # Extract the first complete JSON object from the LLM response
