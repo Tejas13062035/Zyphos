@@ -91,11 +91,19 @@ def ask_cerebras(prompt: str, system: str = "", max_tokens: int = 500) -> str:
             json={
                 "model": "gpt-oss-120b",
                 "messages": messages,
-                "max_tokens": max_tokens
+                "max_tokens": max_tokens,
+                "reasoning_effort": "low"  # minimize reasoning tokens for short/simple prompts
             },
             timeout=30
         )
         data = r.json()
-        return data["choices"][0]["message"]["content"].strip()
+        message = data["choices"][0]["message"]
+        content = message.get("content", "")
+        # some reasoning models put the real answer in 'reasoning' if content is empty/cut off
+        if not content or not content.strip():
+            content = message.get("reasoning", "")
+        if not content:
+            return f"LLM_ERROR: empty content, raw: {str(data)[:200]}"
+        return content.strip()
     except Exception as e:
         return f"LLM_ERROR: {e}, raw: {r.text[:200] if 'r' in dir() else ''}"

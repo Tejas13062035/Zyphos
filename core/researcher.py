@@ -1,6 +1,6 @@
 import os
-import requests
-from tools.search import web_search
+from plugins.wigolo import run as wigolo_run
+from plugins.webintel import run as webintel_run
 from core.llm import ask
 
 REPORTS_DIR = os.path.expanduser("~/zyp/reports")
@@ -22,23 +22,35 @@ def research(topic: str, depth: int = 3) -> str:
 
     for i in range(depth):
         print(f"[Round {i+1}] Query: {query}")
-        results = web_search(query, max_results=3)
-        if not results:
-            break
 
-        for r in results[:3]:
-            if r.get("snippet"):
-                note = f"Source: {r['title']}\n{r['snippet']}"
-                notes.append(note)
-                print(f"  Added: {r['title'][:60]}")
+        # Use wigolo's reranked search — better quality than raw DuckDuckGo
+        search_result = wigolo_run({"action": "search", "query": query})
+        summary_text = search_result.get("result", "")
+        if summary_text and summary_text != "no results":
+            notes.append(f"Search round {i+1} ({query}):\n{summary_text}")
+            print(f"  Added {len(summary_text)} chars from wigolo search")
+
+        # Deep-dive: use wigolo's dedicated research action once per topic for a synthesized brief
+        if i == 0:
+            deep = wigolo_run({"action": "research", "query": topic})
+            deep_text = deep.get("result", "")
+            if deep_text:
+                notes.append(f"Wigolo research brief:\n{deep_text}")
+                print(f"  Added wigolo research brief ({len(deep_text)} chars)")
 
         if i < depth - 1 and notes:
             all_notes = "\n\n".join(notes[-4:])
-            query = ask(
+            raw_query = ask(
                 f"Topic: {topic}\nNotes: {all_notes[:800]}",
                 system=NEXT_QUERY_PROMPT.format(topic=topic, summary=all_notes[:500]),
-                max_tokens=30
-            ).strip().replace('"', '').replace("Search query:", "").strip()
+                max_tokens=150
+            ).strip()
+            if raw_query.startswith("LLM_ERROR") or raw_query.startswith("{"):
+                # fallback: reuse original topic if query generation fails
+                query = topic
+                print(f"  Query generation failed, reusing topic")
+            else:
+                query = raw_query.replace('"', '').replace("Search query:", "").strip()
             print(f"  Next query: {query}")
 
     if not notes:
@@ -46,16 +58,15 @@ def research(topic: str, depth: int = 3) -> str:
 
     print("\nGenerating report...")
     all_notes = "\n\n".join(notes)
-    
-    # use Groq for report — faster than local LLM for long generation
+
     try:
         from groq import Groq
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "system", "content": REPORT_PROMPT.format(topic=topic, notes=all_notes[:3000])},
-                {"role": "user", "content": all_notes[:3000]}
+                {"role": "system", "content": REPORT_PROMPT.format(topic=topic, notes=all_notes[:4000])},
+                {"role": "user", "content": all_notes[:4000]}
             ],
             max_tokens=600
         )
@@ -69,9 +80,14 @@ def research(topic: str, depth: int = 3) -> str:
         f.write(f"RESEARCH REPORT: {topic}\n")
         f.write("="*50 + "\n\n")
         f.write(report)
-        f.write("\n\nSOURCES:\n")
+        f.write("\n\nRAW NOTES:\n")
         for n in notes:
-            f.write(f"- {n.split(chr(10))[0]}\n")
+            f.write(f"\n---\n{n[:500]}\n")
 
     print(f"Report saved: {filepath}")
     return report
+
+def research_deep_page(url: str) -> str:
+    """Read a specific page in full via Jina Reader — useful for citing a specific source."""
+    result = webintel_run({"action": "read_page", "target": url})
+    return result.get("result", "")
