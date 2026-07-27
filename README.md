@@ -37,6 +37,8 @@ I wanted an AI that doesn't just answer questions — one that actually does thi
 
 Zyphos runs entirely on your machine — no cloud dependency for core execution.
 
+![Zyphos Architecture](docs/architecture.svg)
+
 ```
 User (voice/text)
       ↓
