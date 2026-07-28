@@ -33,6 +33,14 @@ I wanted an AI that doesn't just answer questions — one that actually does thi
 
 ---
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/sTehVol512yDDYSN.svg)](https://asciinema.org/a/sTehVol512yDDYSN)
+
+*Watch Zyphos search for news and speak a summary, tell a joke, and run a multi-round autonomous research task — all in real time.*
+
+---
+
 ## Architecture
 
 Zyphos runs entirely on your machine — no cloud dependency for core execution.
