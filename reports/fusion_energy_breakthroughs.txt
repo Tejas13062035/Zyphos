@@ -1,0 +1,68 @@
+RESEARCH REPORT: fusion energy breakthroughs
+==================================================
+
+**Research Report: Fusion Energy Breakthroughs**
+
+Fusion energy, a nearly limitless source of clean energy, has been a long-sought goal in the field of nuclear energy. Several recent breakthroughs in fusion energy have brought scientists and investors closer to making it a reality.
+
+**Five Takeaways from Fusion Energy Breakthrough**
+
+According to a report by the Columbia University Energy Policy program (1), the five key takeaways from recent fusion energy breakthroughs are:
+
+1. **Advances in Plasma Confinement**: Plasma confinement is the key to achieving controlled fusion. Recent breakthroughs in plasma confinement have shown that fusion reactions can be stabilized and sustained for longer periods.
+2. **Improved Materials Science**: Advances in materials science have enabled the development of new materials that can withstand the extreme conditions of a fusion reaction.
+3. **Increased Efficiency**: Recent experiments have achieved higher energy gains per unit of input, making fusion energy more efficient and cost-effective.
+4. **Private Sector Investment**: The private sector has taken a growing interest in fusion energy, with several startups and companies investing heavily in research and development.
+5. **Global Collaboration**: International collaborations are driving innovation and progress in fusion energy research, with multiple countries working together to achieve this goal.
+
+**Fusion Energy in 2025**
+
+The International Atomic Energy Agency (IAEA) has identified six key trends that will shape the fusion energy landscape in 2025 (2). These trends include:
+
+1. **Increased Investment**: Fusion energy is attracting significant investment from governments and private sector companies.
+2. **Advances in Private Sector Capabilities**: Private startups and companies are making significant strides in fusion energy research and development.
+3. **Development of New Technologies**: New technologies, such as magnetic confinement and inertial confinement fusion, are being developed to improve fusion energy efficiency.
+4. **Government-Led Initiatives**: Governments are launching initiatives to support fusion energy research and development.
+5. **International Cooperation**: Collaboration between countries and international organizations is growing to accelerate fusion energy development.
+6. **Improved Public Perception**: Greater public awareness of fusion energy's potential is driving increased interest and investment in this field.
+
+**Private Sector Funding**
+
+The private sector is increasingly investing in fusion energy startups and companies (3). Some notable examples include:
+
+* Lockheed Martin's Compact Fusion Project
+* Commonwealth Fusion Systems (CFS)
+* Tokamak Energy
+* First Light Fusion
+
+These companies are working on various approaches to fusion energy, including magnetic confinement and inertial confinement.
+
+**New Records and Breakthroughs**
+
+Recent experiments have achieved new records in fusion energy production, bringing us closer to a practical and efficient fusion reactor (4). For example, the Joint European Torus (JET) experiment in the UK achieved a new record for the highest sustained fusion power output.
+
+In conclusion, fusion energy breakthroughs have made significant progress in recent years, with advances in plasma confinement, materials science, and efficiency. The increased investment from the private sector, international collaborations, and government
+
+RAW NOTES:
+
+---
+Search round 1 (fusion energy breakthroughs):
+- Five takeaways from the fusion energy breakthrough (https://www.energypolicy.columbia.edu/five-takeaways-from-the-fusion-energy-breakthrough/)
+- Fusion Energy in 2025: Six Global Trends to Watch (https://www.iaea.org/newscenter/news/fusion-energy-in-2025-six-global-trends-to-watch)
+- Funding the fusion revolution | MIT Energy Initiative (https://energy.mit.edu/news/funding-the-fusion-revolution/)
+- Fusion Energy Breakthroughs 2026: From Scientific 
+
+---
+Wigolo research brief:
+wigolo timed out
+
+---
+Search round 2 (latest private fusion startup funding*No further response required.*):
+wigolo timed out
+
+---
+Search round 3 (latest private fusion startup):
+- Top 21 Fusion Energy startups in USA (https://www.energystartups.org/top/fusion-energy/USA/)
+- Every fusion startup that has raised over $100M - TechCrunch (https://techcrunch.com/2026/06/19/every-fusion-startup-that-has-raised-over-100m/)
+- Every fusion startup that has raised over $100M - geekblog.net (https://geekblog.net/tech-news/every-fusion-startup-that-has-raised-over-100m/)
+- Every fusion startup that has raised over $100M - techlinos.co

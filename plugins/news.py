@@ -16,6 +16,7 @@ def run(args=None):
         "https://newsapi.org/v2/everything",
         params={
             "q": topic,
+            "language": "en",
             "sortBy": "publishedAt",
             "pageSize": 5,
             "apiKey": api_key
