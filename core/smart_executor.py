@@ -221,7 +221,7 @@ def smart_execute(task: Union[dict, str]) -> dict:
         # Auto‑speak for conversational‑style goals
         speak_triggers = [
             "tell me", "what is", "what are", "read", "who is",
-            "show me", "how many", "where is", "when is"
+            "show me", "how many", "where is", "when is", "summarize"
         ]
         original_goal = desc.lower()
         if any(t in original_goal for t in speak_triggers):
