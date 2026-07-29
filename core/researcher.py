@@ -38,6 +38,8 @@ def research(topic: str, depth: int = 3) -> str:
                 notes.append(f"Wigolo research brief:\n{deep_text}")
                 print(f"  Added wigolo research brief ({len(deep_text)} chars)")
 
+        FALLBACK_ANGLES = ["latest developments", "recent breakthroughs", "expert analysis", "future outlook", "key challenges"]
+
         if i < depth - 1 and notes:
             all_notes = "\n\n".join(notes[-4:])
             raw_query = ask(
@@ -46,11 +48,22 @@ def research(topic: str, depth: int = 3) -> str:
                 max_tokens=150
             ).strip()
             if raw_query.startswith("LLM_ERROR") or raw_query.startswith("{"):
-                # fallback: reuse original topic if query generation fails
-                query = topic
-                print(f"  Query generation failed, reusing topic")
+                # fallback: diversify by appending a different angle each round instead of repeating the exact same query
+                angle = FALLBACK_ANGLES[i % len(FALLBACK_ANGLES)]
+                query = f"{topic} {angle}"
+                print(f"  Query generation failed, using fallback angle: '{angle}'")
             else:
                 query = raw_query.replace('"', '').replace("Search query:", "").strip()
+                # detect and fix duplicated-phrase glitches (e.g. "xyzxyz" with no space)
+                half = len(query) // 2
+                if len(query) > 10 and query[:half] == query[half:]:
+                    query = query[:half]
+                    print(f"  Detected duplicated query, trimmed to: '{query}'")
+                # guard against overly long or malformed queries slipping through
+                if len(query) > 80 or not query:
+                    angle = FALLBACK_ANGLES[i % len(FALLBACK_ANGLES)]
+                    query = f"{topic} {angle}"
+                    print(f"  Query malformed, using fallback angle: '{angle}'")
             print(f"  Next query: {query}")
 
     if not notes:
