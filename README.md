@@ -114,7 +114,9 @@ Switch via `ZYPHOS_BACKEND` env var or `.env` file.
 
 ---
 
-## Plugins (25+)
+## Plugins (34+)
+
+![Zyphos Plugin Ecosystem](docs/plugin_ecosystem.svg)
 
 | Plugin | Capability |
 |--------|-----------|
@@ -135,11 +137,22 @@ Switch via `ZYPHOS_BACKEND` env var or `.env` file.
 | security | Password gen, IP lookup, DNS, WHOIS, WiFi info |
 | port_scanner | Threaded port scanner |
 | joke | Random jokes via JokeAPI |
-| nasa | APOD, asteroids, Earth photos, solar flares |
+| nasa | APOD, asteroids, Earth photos, solar flares, natural events |
 | news | Headlines by topic via NewsAPI |
 | countries | Country info via Wikipedia |
-| github_stats | Repo stats and recent commits |
+| github_stats | Repo stats and recent commits — works on any public repo |
+| github_clone | Clone or zip-download any public GitHub repo |
 | spotify | Spotify control (Premium required) |
+| calculator | Evaluate math expressions |
+| dictionary | Word definitions and lookups |
+| translate | Translate text via Cerebras, auto-speaks result |
+| qr | Generate QR codes |
+| wigolo | ML-reranked web search, page fetch, multi-step research |
+| webintel | Read webpages (Jina Reader), YouTube transcripts, semantic search, RSS |
+| wisdom | Philosophical quotes and two-voice Socratic dialogues |
+| briefing | Daily spoken briefing — weather, calendar, and news combined |
+| pdf_summary | Read and summarize PDF documents |
+| ocr | Extract text from screen regions (full/left/right) or image files |
 | hello | Example plugin template |
 
 ### Monitoring
