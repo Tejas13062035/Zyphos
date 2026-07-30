@@ -237,6 +237,12 @@ OTHER:
         explain()
         return
 
+    if sys.argv[1] == "--doctor":
+        from plugins.doctor import run as doctor_run
+        result = doctor_run()
+        print(result.get("result", "check failed"))
+        return
+
     if sys.argv[1] == "--enroll":
         enroll()
         return
