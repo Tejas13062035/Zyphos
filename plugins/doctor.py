@@ -53,6 +53,42 @@ def _check_ollama():
     except Exception:
         return False
 
+def _check_known_issues():
+    issues = []
+
+    # Check 1: Cerebras reasoning-model truncation risk
+    # If max_tokens is set too low anywhere critical, warn
+    llm_path = os.path.expanduser("~/zyp/core/llm.py")
+    if os.path.exists(llm_path):
+        with open(llm_path) as f:
+            content = f.read()
+        if "reasoning_effort" not in content:
+            issues.append("Cerebras calls missing 'reasoning_effort' param — risk of JSON truncation on short prompts (seen with gpt-oss-120b)")
+
+    # Check 2: researcher.py fallback query max_tokens too low
+    researcher_path = os.path.expanduser("~/zyp/core/researcher.py")
+    if os.path.exists(researcher_path):
+        with open(researcher_path) as f:
+            content = f.read()
+        if "max_tokens=30\n" in content or "max_tokens=30," in content or "max_tokens=60\n" in content or "max_tokens=60," in content or "max_tokens=60)" in content:
+            issues.append("researcher.py follow-up query max_tokens may be too low — can cause reasoning-model truncation, use 150+")
+
+    # Check 3: stale memory index size sanity check
+    memory_json = os.path.expanduser("~/zyp/state/memory.json")
+    if os.path.exists(memory_json):
+        size_mb = os.path.getsize(memory_json) / (1024 * 1024)
+        if size_mb > 50:
+            issues.append(f"memory.json is {size_mb:.1f}MB — consider running --forget to prune old entries, large files slow FAISS load")
+
+    # Check 4: reports/ folder growing unbounded (should be gitignored but still fills disk)
+    reports_dir = os.path.expanduser("~/zyp/reports")
+    if os.path.exists(reports_dir):
+        count = len([f for f in os.listdir(reports_dir) if f.endswith(".txt")])
+        if count > 30:
+            issues.append(f"reports/ has {count} files — consider archiving or deleting old research reports")
+
+    return issues
+
 def run(args=None):
     results = []
 
@@ -85,6 +121,12 @@ def run(args=None):
         limit = LIMITS.get(provider, 0)
         usage_lines.append(f"  {provider}: {count}/{limit} today")
     results.append("API usage today:\n" + "\n".join(usage_lines))
+
+    known_issues = _check_known_issues()
+    if known_issues:
+        results.append("KNOWN ISSUE PATTERNS DETECTED:\n" + "\n".join(f"  - {i}" for i in known_issues))
+    else:
+        results.append("No known issue patterns detected.")
 
     all_critical_ok = cerebras_ok and sidecar_ok and mem_ok and not missing_keys
     overall = "All systems operational." if all_critical_ok else "Issues detected — see above."
