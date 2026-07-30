@@ -11,3 +11,4 @@ core/*.swp
 
 .aider*
 state/qrcodes/
+reports/
