@@ -1,5 +1,6 @@
 import os
 import requests
+from core.quota_tracker import record_call
 
 # -----------------------------------------------------------
 # BACKEND SWITCH
@@ -35,6 +36,7 @@ def ask(prompt: str, system: str = "", max_tokens: int = 150) -> str:
     return ask_cerebras(prompt, full_system, max_tokens)
 
 def ask_groq(prompt: str, system: str = "", max_tokens: int = 150) -> str:
+    record_call("grok")
     try:
         import os
         from groq import Groq
@@ -55,6 +57,7 @@ def ask_groq(prompt: str, system: str = "", max_tokens: int = 150) -> str:
         return f"LLM_ERROR: {e}"
 
 def ask_gemini(prompt: str, system: str = "", max_tokens: int = 500) -> str:
+    record_call("gemini")
     try:
         from google import genai
         from google.genai import types
@@ -75,6 +78,7 @@ def ask_gemini(prompt: str, system: str = "", max_tokens: int = 500) -> str:
         return f"LLM_ERROR: {e}"
 
 def ask_cerebras(prompt: str, system: str = "", max_tokens: int = 500) -> str:
+    record_call("cerebras")
     try:
         from dotenv import load_dotenv
         load_dotenv(os.path.expanduser("~/zyp/.env"))

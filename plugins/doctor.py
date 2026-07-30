@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from core.quota_tracker import get_usage, LIMITS
 load_dotenv(os.path.expanduser("~/zyp/.env"))
 
 TOOL_NAME = "doctor"
@@ -76,6 +77,14 @@ def run(args=None):
     free_gb = _check_disk()
     disk_status = "ok" if free_gb > 2 else "LOW SPACE"
     results.append(f"Disk free: {free_gb:.1f} GB ({disk_status})")
+
+    usage = get_usage()
+    usage_lines = []
+    for provider in ["cerebras", "groq", "gemini"]:
+        count = usage.get(provider, 0)
+        limit = LIMITS.get(provider, 0)
+        usage_lines.append(f"  {provider}: {count}/{limit} today")
+    results.append("API usage today:\n" + "\n".join(usage_lines))
 
     all_critical_ok = cerebras_ok and sidecar_ok and mem_ok and not missing_keys
     overall = "All systems operational." if all_critical_ok else "Issues detected — see above."
