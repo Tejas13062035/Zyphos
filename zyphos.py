@@ -243,6 +243,13 @@ OTHER:
         print(result.get("result", "check failed"))
         return
 
+    if sys.argv[1] == "--diagnose":
+        from plugins.diagnose import run as diagnose_run
+        error_text = " ".join(sys.argv[2:])
+        result = diagnose_run({"error": error_text})
+        print(result.get("result", "diagnosis failed"))
+        return
+
     if sys.argv[1] == "--enroll":
         enroll()
         return
