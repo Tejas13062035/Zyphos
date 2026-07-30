@@ -250,6 +250,15 @@ OTHER:
         print(result.get("result", "diagnosis failed"))
         return
 
+    if sys.argv[1] == "--autofix":
+        from core.autofix import attempt_autofix
+        # usage: --autofix <filepath> "<error text>"
+        filepath = sys.argv[2]
+        error_text = " ".join(sys.argv[3:])
+        result = attempt_autofix(filepath, error_text)
+        print(result)
+        return
+
     if sys.argv[1] == "--enroll":
         enroll()
         return

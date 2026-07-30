@@ -1,7 +1,7 @@
 import os
 import json
 from typing import Union
-
+from core.tool_usage_log import log_tool_use
 from tools.sidecar import speak
 from plugins.system_stats import run as stats_run
 from plugins.joke import run as joke_run
@@ -209,6 +209,7 @@ def smart_execute(task: Union[dict, str]) -> dict:
         if tool == "joke":
             result = _run_joke(args, desc)
         else:
+            log_tool_use(tool)
             result = TOOL_MAP[tool](args)
 
         task["status"] = "done"
@@ -219,7 +220,7 @@ def smart_execute(task: Union[dict, str]) -> dict:
         }
 
         # Auto‑speak for conversational‑style goals
-        speak_triggers = ["tell me", "what is", "what are", "read", "who is", "show me", "how many", "where is", "when is", "summarize", "convert"]
+        speak_triggers = ["tell me", "what is", "what are", "read", "who is", "show", "how many", "where is", "when is", "summarize", "convert"]
         original_goal = desc.lower()
         if any(t in original_goal for t in speak_triggers):
             if tool not in ["joke", "wisdom", "speak", "text_to_speech", "type_text", "screenshot", "click", "hotkey", "music"]:
