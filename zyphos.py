@@ -56,6 +56,12 @@ BASIC:
 
 VOICE:
   zyphos.py --listen                  Voice input with biometric auth
+  zyphos.py --enroll                  Enroll your voice for biometric auth
+
+RESEARCH & BRIEFING:
+  zyphos.py --research "topic"        Multi-round autonomous web research
+  zyphos.py --briefing                Daily spoken briefing (weather, calendar, news)
+  zyphos.py --explain                 Zyphos reads its own source and explains itself
 
 DAEMON:
   zyphos.py --daemon                  Start background daemon
@@ -77,9 +83,13 @@ SCHEDULING:
 
 MONITORING:
   zyphos.py --watchdog                Start auto-restart watchdog
+  scripts/monitor.py                  TUI dashboard (rich)
+  scripts/webui.py                    Web dashboard (localhost:6789)
 
 OTHER:
   zyphos.py --help                    Show this message
+
+34 plugins loaded automatically from plugins/ — drop any .py file in to add more.
 """)
         return
 
