@@ -24,7 +24,9 @@ def briefing():
 
     try:
         from plugins.weather import run as weather_run
-        w = weather_run({"city": "Godda"})
+        from core.location import get_location
+        location = get_location()
+        w = weather_run({"lat": location.get("lat"), "lon": location.get("lon")})
         if w.get("status") == "ok":
             speak(f"Weather in Godda: {w['description']}, {w['temp']} degrees Celsius.")
         else:
