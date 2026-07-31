@@ -186,13 +186,17 @@ OTHER:
         import subprocess
         venv_python = os.path.expanduser("~/zyp/venv/bin/python")
         log_file = open(os.path.expanduser("~/zyp/logs/watchdog.log"), "a")
-        subprocess.Popen(
+        proc = subprocess.Popen(
             [venv_python, "scripts/watchdog.py"],
             cwd=os.path.expanduser("~/zyp"),
             stdout=log_file,
-            stderr=subprocess.STDOUT
+            stderr=subprocess.STDOUT,
+            start_new_session=True
         )
-        print("WATCHDOG: started in background")
+        pid_file = os.path.expanduser("~/zyp/state/watchdog.pid")
+        with open(pid_file, "w") as f:
+            f.write(str(proc.pid))
+        print(f"WATCHDOG: started in background (PID {proc.pid})")
         return
 
     if sys.argv[1] == "--send":

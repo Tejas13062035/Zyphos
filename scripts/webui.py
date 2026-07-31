@@ -38,7 +38,6 @@ HTML = """
 <html>
 <head>
     <title>Z.Y.P.H.O.S</title>
-    <meta http-equiv="refresh" content="3">
     <style>
         body { background: #0a0a0a; color: #e0e0e0; font-family: monospace; padding: 20px; }
         h1 { color: #00ffcc; letter-spacing: 4px; }
@@ -74,7 +73,7 @@ HTML = """
         <button onclick="sendGoal()">SEND</button>
     </div>
     <div class="grid3">
-        <div class="panel">
+        <div class="panel" id="daemon-status">
             <h3>DAEMON</h3>
             <span class="{{ 'running' if running else 'stopped' }}">
                 {{ 'RUNNING' if running else 'STOPPED' }}
@@ -89,7 +88,7 @@ HTML = """
                 SMART: {{ 'ON' if smart_mode else 'OFF' }}
             </span>
         </div>
-        <div class="panel">
+        <div class="panel" id="pending-queue">
             <h3>PENDING QUEUE</h3>
             {% if pending %}
                 {% for g in pending %}
@@ -100,13 +99,13 @@ HTML = """
             {% endif %}
         </div>
     </div>
-    <div class="panel" style="margin-bottom: 16px;">
+    <div class="panel" id="daemon-log" style="margin-bottom: 16px;">
         <h3>DAEMON LOG</h3>
         {% for line in logs %}
             <div class="log-line">{{ line }}</div>
         {% endfor %}
     </div>
-    <div class="panel">
+    <div class="panel" id="goal-history">
         <h3>GOAL HISTORY</h3>
         <table>
             <tr><th>Time</th><th>Goal</th><th>Tasks</th></tr>
@@ -141,6 +140,28 @@ HTML = """
             .then(() => { document.getElementById('goalInput').value = ''; });
         }
     </script>
+    <script>
+function refreshDashboard() {
+    fetch(window.location.pathname)
+        .then(r => r.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, "text/html");
+
+            // only update the panels, not the whole page — leaves your typed input alone
+            const panelsToUpdate = ["daemon-status", "pending-queue", "daemon-log", "goal-history"];
+            panelsToUpdate.forEach(id => {
+                const oldEl = document.getElementById(id);
+                const newEl = newDoc.getElementById(id);
+                if (oldEl && newEl) {
+                    oldEl.innerHTML = newEl.innerHTML;
+                }
+            });
+        })
+        .catch(err => console.error("refresh failed", err));
+}
+setInterval(refreshDashboard, 3000);
+</script>
 </body>
 </html>
 """
@@ -168,4 +189,4 @@ def send_goal():
     return jsonify({"status": "sent"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=6789, debug=False)
+    app.run(host="0.0.0.0", port=8181, debug=False)
