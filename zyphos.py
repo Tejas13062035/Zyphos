@@ -137,6 +137,12 @@ OTHER:
         daemon_start()
         return
 
+    if sys.argv[1] == "--cancel":
+        from core.cancel_flag import request_cancel
+        request_cancel()
+        print("CANCEL: requested — running goal will stop at next checkpoint")
+        return
+
     if sys.argv[1] == "--schedule":
         goal = sys.argv[2]
         every = None

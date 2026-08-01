@@ -1,6 +1,7 @@
 import os
 from plugins.wigolo import run as wigolo_run
 from plugins.webintel import run as webintel_run
+from core.cancel_flag import is_cancelled, clear_cancel
 from core.llm import ask
 
 REPORTS_DIR = os.path.expanduser("~/zyp/reports")
@@ -16,11 +17,15 @@ Based on these notes:
 Write 3-5 paragraphs. Facts only. No fluff."""
 
 def research(topic: str, depth: int = 3) -> str:
+    clear_cancel()  # clear any stale flag from a previous run
     print(f"\nRESEARCH: {topic}")
     notes = []
     query = topic
 
     for i in range(depth):
+        if is_cancelled():
+            print("RESEARCH: cancelled by user")
+            break
         print(f"[Round {i+1}] Query: {query}")
 
         # Use wigolo's reranked search — better quality than raw DuckDuckGo

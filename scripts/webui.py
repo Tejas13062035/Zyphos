@@ -71,6 +71,7 @@ HTML = """
     <div style="margin-bottom: 16px;">
         <input type="text" id="goalInput" placeholder="enter goal..." onkeydown="if(event.key==='Enter') sendGoal()">
         <button onclick="sendGoal()">SEND</button>
+        <button onclick="cancelGoal()" style="background:#ff4444; color:#fff;">CANCEL</button>
     </div>
     <div class="grid3">
         <div class="panel" id="daemon-status">
@@ -139,6 +140,9 @@ HTML = """
             fetch('/send', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({goal})})
             .then(() => { document.getElementById('goalInput').value = ''; });
         }
+        function cancelGoal() {
+            fetch('/cancel', {method: 'POST'});
+        }
     </script>
     <script>
 function refreshDashboard() {
@@ -188,5 +192,17 @@ def send_goal():
             f.write(goal + "\n")
     return jsonify({"status": "sent"})
 
+@app.route("/cancel", methods=["POST"])
+def cancel_goal():
+    import requests
+    from core.cancel_flag import request_cancel
+    request_cancel()
+    try:
+        requests.post("http://127.0.0.1:5000/stop_audio", timeout=3)
+    except Exception as e:
+        print(f"CANCEL: failed to reach sidecar stop_audio: {e}")
+    return jsonify({"status": "cancel requested"})
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8181, debug=False)
+
