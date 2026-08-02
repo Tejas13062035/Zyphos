@@ -26,7 +26,10 @@ def hotkey(keys: list):
     r = requests.post(f"{SIDECAR_URL}/hotkey", json={"keys": keys})
     return r.json()
 
-def speak(text: str, voice: str = "en-GB-RyanNeural"):
+def speak(text: str, voice: str = None):
+    if voice is None:
+        from core.language_detect import get_voice_for_text
+        voice = get_voice_for_text(text)
     return speak_edge(text, voice)
 
 def speak_edge(text: str, voice: str = "en-GB-RyanNeural"):
