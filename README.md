@@ -317,8 +317,6 @@ Zyphos auto-discovers it on next run and makes it available to both the keyword 
 
 ## Roadmap
 
-## Roadmap
-
 See [ROADMAP.md](ROADMAP.md) for the full, up-to-date roadmap — phases completed, near-term plans, what's gated behind the new hardware, and longer-term exploratory ideas.
 
 ---
