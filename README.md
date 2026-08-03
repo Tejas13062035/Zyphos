@@ -317,15 +317,9 @@ Zyphos auto-discovers it on next run and makes it available to both the keyword 
 
 ## Roadmap
 
-- [x] **Phase 1** — Core skeleton (CLI, executor, memory, state)
-- [x] **Phase 2** — Perception & control (sidecar, vision, STT, TTS, daemon)
-- [x] **Phase 3** — Intelligence (smart executor, planner, critique, chaining, plugins)
-- [ ] **Phase 4** — Main machine upgrade (Qwen2.5 7B, Whisper medium, local vision)
-- [ ] **Phase 5** — Ambient awareness (person detection, face recognition, wake word)
-- [ ] **Phase 6** — Home & environment control (smart home, phone integration)
-- [ ] **Phase 7** — Advanced intelligence (proactive suggestions, forensic analysis)
-- [ ] **Phase 8** — Fine-tuned Zyphos model (QLoRA on own usage data)
-- [ ] **Phase 9** — Full Jarvis
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the full, up-to-date roadmap — phases completed, near-term plans, what's gated behind the new hardware, and longer-term exploratory ideas.
 
 ---
 
