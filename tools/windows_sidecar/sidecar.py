@@ -9,6 +9,18 @@ import io
 import pyperclip
 from PIL import Image
 
+import re
+
+def strip_markdown_for_speech(text: str) -> str:
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+    text = re.sub(r'\*(.*?)\*', r'\1', text)
+    text = re.sub(r'__(.*?)__', r'\1', text)
+    text = re.sub(r'`(.*?)`', r'\1', text)
+    text = re.sub(r'#{1,6}\s*', '', text)
+    text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', text)
+    text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
+    return text
+
 app = Flask(__name__)
 
 @app.route("/wifi_info", methods=["GET"])
@@ -204,6 +216,8 @@ def speak():
     if not text:
         return jsonify({"status": "error", "message": "no text provided"})
 
+    text = strip_markdown_for_speech(text)
+
     try:
         tmp_path = os.path.join(tempfile.gettempdir(), f"zyphos_tts_{os.getpid()}_{abs(hash(text))}.mp3")
 
@@ -248,7 +262,8 @@ def speak_batch():
         async def generate_all():
             tasks = []
             for line, path in zip(lines, paths):
-                communicate = edge_tts.Communicate(line["text"], line.get("voice", "en-GB-RyanNeural"))
+                clean_text = strip_markdown_for_speech(line["text"])
+                communicate = edge_tts.Communicate(clean_text, line.get("voice", "en-GB-RyanNeural"))
                 tasks.append(communicate.save(path))
             await asyncio.gather(*tasks)
 
