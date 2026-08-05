@@ -56,7 +56,7 @@ def run(args: dict) -> dict:
 
     if action == "set":
         time_str = args.get("time", "")
-        label = args.get("label", "Alarm")
+        label = args.get("label", "").strip() or "Alarm"
 
         if not time_str:
             return {"status": "error", "result": "no time provided"}
