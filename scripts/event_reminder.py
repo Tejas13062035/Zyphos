@@ -5,6 +5,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.expanduser("~/zyp"))
 
+from plugins.alarm import _load_alarms, _save_alarms
 from plugins.calendar import run as calendar_run
 import requests
 
@@ -40,6 +41,35 @@ def mark_reminded(event_id):
     with open(REMINDED_FILE, "a") as f:
         f.write(event_id + "\n")
 
+def _trigger_alarm(label: str):
+    import time as time_module
+    urgent_msg = f"Alarm! Alarm! {label}! Wake up!"
+    for i in range(5):
+        speak(urgent_msg)
+        time_module.sleep(1.5)
+
+
+def check_alarms():
+    alarms = _load_alarms()
+    now = datetime.now()
+    today_str = now.strftime("%Y-%m-%d")
+    changed = False
+    for alarm in alarms:
+        if alarm.get("triggered", False):
+            continue
+        if alarm["date"] != today_str:
+            continue
+        try:
+            alarm_time = datetime.strptime(f"{today_str} {alarm['time']}", "%Y-%m-%d %H:%M")
+        except ValueError:
+            continue
+        if now >= alarm_time:
+            log(f"ALARM TRIGGERED: {alarm['label']}")
+            _trigger_alarm(alarm["label"])
+            alarm["triggered"] = True
+            changed = True
+    if changed:
+        _save_alarms(alarms)
 
 def check_events():
     reminded = get_reminded()
@@ -80,10 +110,10 @@ def main():
     while True:
         try:
             check_events()
+            check_alarms()
         except Exception as e:
             log(f"Error checking events: {e}")
         time.sleep(CHECK_INTERVAL)
-
 
 if __name__ == "__main__":
     main()
