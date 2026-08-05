@@ -9,7 +9,8 @@ from plugins.alarm import _load_alarms, _save_alarms
 from plugins.calendar import run as calendar_run
 import requests
 
-CHECK_INTERVAL = 300  # 5 minutes — finer granularity to catch both windows
+CHECK_INTERVAL = 300  # 5 minutes — for calendar event reminders
+ALARM_CHECK_INTERVAL = 30  # 30 seconds — for precise alarm firing
 REMINDER_WINDOWS = [30, 10]  # minutes before event to remind
 LOG_FILE = os.path.expanduser("~/zyp/logs/reminder.log")
 REMINDED_FILE = os.path.expanduser("~/zyp/state/reminded_events.txt")
@@ -106,14 +107,25 @@ def check_events():
 
 
 def main():
-    log("Event reminder started — 30min and 10min windows")
+    log("Event reminder started — 30min/10min event windows, 30s alarm precision")
+    last_event_check = 0
+
     while True:
+        now = time.time()
+
         try:
-            check_events()
             check_alarms()
         except Exception as e:
-            log(f"Error checking events: {e}")
-        time.sleep(CHECK_INTERVAL)
+            log(f"Error checking alarms: {e}")
+
+        if now - last_event_check >= CHECK_INTERVAL:
+            try:
+                check_events()
+            except Exception as e:
+                log(f"Error checking events: {e}")
+            last_event_check = now
+
+        time.sleep(ALARM_CHECK_INTERVAL)
 
 if __name__ == "__main__":
     main()
