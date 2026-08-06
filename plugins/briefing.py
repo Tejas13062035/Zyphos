@@ -54,7 +54,7 @@ def run(args: dict) -> dict:
 
     # AI / tech news
     try:
-        n = news_run({"topic": "artificial intelligence"})
+        n = news_run({"topic": "artificial intelligence", "strict": True})
         if n.get("status") == "ok":
             parts.append(f"AI news: {n['result']}")
         else:
