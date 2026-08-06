@@ -21,9 +21,15 @@ def _get_quote(theme="", author=""):
         prompt += ". Respond with ONLY the quote in quotes followed by an em dash and the author name. No other text."
     else:
         theme_part = f" about {theme}" if theme else " about life, wisdom, or the human condition"
-        prompt = f"Give me one real, well-known philosophical quote{theme_part} from any famous philosopher. Respond with ONLY the quote in quotes followed by an em dash and the author name. No other text."
+        prompt = (
+            f"Give me one real, well-known philosophical quote{theme_part}. "
+            f"Pick randomly from a WIDE range of philosophers — Nietzsche, Marcus Aurelius, Lao Tzu, "
+            f"Confucius, Kant, Camus, Simone de Beauvoir, Seneca, Epictetus, Aristotle, Rumi, "
+            f"or others. Avoid repeating the same philosopher every time. "
+            f"Respond with ONLY the quote in quotes followed by an em dash and the author name. No other text."
+        )
 
-    result = ask_cerebras(prompt, system="You are a knowledgeable source of real philosophical quotes. Only cite quotes you are confident are accurate.", max_tokens=800)
+    result = ask_cerebras(prompt, system="You are a knowledgeable source of real philosophical quotes from diverse thinkers. Vary your author choice each time. Only cite quotes you are confident are accurate.", max_tokens=800)
 
     if result.startswith("LLM_ERROR"):
         return "The unexamined life is not worth living. — Socrates"
