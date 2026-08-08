@@ -29,12 +29,14 @@ def record(duration=5):
     time.sleep(duration + 1)
 
 
-def transcribe():
-    if not os.path.exists(AUDIO_PATH):
-        raise FileNotFoundError(f"No audio file at {AUDIO_PATH}")
+def transcribe(path=None):
+    if path is None:
+        path = AUDIO_PATH
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"No audio file at {path}")
     m = load_model()
     print("STT: transcribing...")
-    result = m.transcribe(AUDIO_PATH, language="en", fp16=False)
+    result = m.transcribe(path, language="en", fp16=False)
     text = result["text"].strip()
 
     # calculate average confidence from segments

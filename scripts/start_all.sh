@@ -21,6 +21,11 @@ if ! pgrep -f "scripts/webui.py" > /dev/null; then
     nohup python scripts/webui.py >> logs/webui.log 2>&1 &
 fi
 sleep 1
+echo "Starting HUD web UI..."
+if ! pgrep -f "scripts/webui_hud.py" > /dev/null; then
+    nohup python scripts/webui_hud.py >> logs/webui_hud.log 2>&1 &
+fi
+sleep 1
 
 if ! pgrep -f "event_reminder.py" > /dev/null; then
     echo "Starting event reminder..."
@@ -35,4 +40,5 @@ echo "Status:"
 pgrep -f "zyphos.py --daemon" > /dev/null && echo "  Daemon:   RUNNING" || echo "  Daemon:   FAILED"
 pgrep -f "watchdog.py" > /dev/null && echo "  Watchdog: RUNNING" || echo "  Watchdog: FAILED"
 pgrep -f "scripts/webui.py" > /dev/null && echo "  Web UI:   RUNNING" || echo "  Web UI:   FAILED"
+pgrep -f "scripts/webui_hud.py" > /dev/null && echo "  HUD UI:   RUNNING" || echo "  HUD UI:   FAILED"
 pgrep -f "event_reminder.py" > /dev/null && echo "  Reminder: RUNNING" || echo "  Reminder: FAILED"

@@ -71,6 +71,8 @@ HTML = """
     <div style="margin-bottom: 16px;">
         <input type="text" id="goalInput" placeholder="enter goal..." onkeydown="if(event.key==='Enter') sendGoal()">
         <button onclick="sendGoal()">SEND</button>
+        <button id="micBtn" onclick="toggleRecording()" style="background:#ffcc00;">🎤</button>
+        <button id="convBtn" onclick="toggleConversationMode()" style="background:#444; color:#fff;">💬 OFF</button>
         <button onclick="cancelGoal()" style="background:#ff4444; color:#fff;">CANCEL</button>
     </div>
     <div class="grid3">
@@ -143,6 +145,101 @@ HTML = """
         function cancelGoal() {
             fetch('/cancel', {method: 'POST'});
         }
+
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleRecording() {
+            const micBtn = document.getElementById('micBtn');
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            sampleRate: 48000,
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: 'audio/webm;codecs=opus',
+                        audioBitsPerSecond: 128000
+                    });
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        stream.getTracks().forEach(t => t.stop());
+                        sendVoiceCommand(blob);
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    micBtn.style.background = '#ff4444';
+                    micBtn.textContent = '⏹';
+                } catch (err) {
+                    alert('Mic access failed: ' + err.message);
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                micBtn.style.background = '#ffcc00';
+                micBtn.textContent = '🎤';
+            }
+        }
+
+        let conversationMode = false;
+
+        function toggleConversationMode() {
+            conversationMode = !conversationMode;
+            const btn = document.getElementById('convBtn');
+            btn.textContent = conversationMode ? '💬 ON' : '💬 OFF';
+            btn.style.background = conversationMode ? '#00ffcc' : '#444';
+            btn.style.color = conversationMode ? '#000' : '#fff';
+        }
+
+        function sendVoiceCommand(blob) {
+            const micBtn = document.getElementById('micBtn');
+            micBtn.textContent = '...';
+            const formData = new FormData();
+            formData.append('audio', blob, 'recording.webm');
+            fetch('/voice_command', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    micBtn.textContent = '🎤';
+                    if (data.status === 'error') {
+                        alert('Voice command failed: ' + data.message);
+                        return;
+                    }
+                    if (conversationMode && data.text) {
+                        pollGoalStatus(data.text);
+                    }
+                })
+                .catch(err => {
+                    micBtn.textContent = '🎤';
+                    alert('Upload failed: ' + err.message);
+                });
+        }
+
+        function pollGoalStatus(goalText) {
+            const interval = setInterval(() => {
+                fetch('/goal_status', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({goal: goalText})
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.pending) {
+                        clearInterval(interval);
+                        if (conversationMode) {
+                            setTimeout(() => toggleRecording(), 500);
+                        }
+                    }
+                })
+                .catch(() => clearInterval(interval));
+            }, 1000);
+        }
     </script>
     <script>
 function refreshDashboard() {
@@ -192,6 +289,60 @@ def send_goal():
             f.write(goal + "\n")
     return jsonify({"status": "sent"})
 
+@app.route("/voice_command", methods=["POST"])
+def voice_command():
+    import sys
+    import tempfile
+    import subprocess as sp
+    sys.path.insert(0, os.path.expanduser("~/zyp"))
+    from tools.stt import transcribe
+
+    audio_file = request.files.get("audio")
+    if not audio_file:
+        return jsonify({"status": "error", "message": "no audio uploaded"})
+
+    with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp_in:
+        audio_file.save(tmp_in.name)
+        webm_path = tmp_in.name
+
+    wav_path = webm_path.replace(".webm", ".wav")
+    try:
+        sp.run(
+            ["ffmpeg", "-y", "-i", webm_path, "-ar", "16000", "-ac", "1", wav_path],
+            capture_output=True, check=True
+        )
+    except sp.CalledProcessError as e:
+        os.remove(webm_path)
+        return jsonify({"status": "error", "message": f"ffmpeg conversion failed: {e.stderr.decode()[:200]}"})
+
+    import shutil
+    debug_path = os.path.expanduser("~/zyp/state/last_voice_command.wav")
+    shutil.copy(wav_path, debug_path)
+
+    try:
+        text, confidence = transcribe(wav_path)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+    finally:
+        os.remove(webm_path)
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+
+    if not text:
+        return jsonify({"status": "error", "message": "no speech detected"})
+
+    with open(GOAL_FILE, "a") as f:
+        f.write(text + "\n")
+
+    return jsonify({"status": "sent", "text": text, "confidence": round(confidence, 2)})
+
+@app.route("/goal_status", methods=["POST"])
+def goal_status():
+    goal = request.json.get("goal", "").strip()
+    pending = get_pending()
+    still_pending = goal in pending
+    return jsonify({"pending": still_pending})
+
 @app.route("/cancel", methods=["POST"])
 def cancel_goal():
     import requests
@@ -204,4 +355,10 @@ def cancel_goal():
     return jsonify({"status": "cancel requested"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9191, debug=False)
+    cert_path = os.path.expanduser("~/zyp/certs/desktop-8m9899c.tail05f2a2.ts.net.crt")
+    key_path = os.path.expanduser("~/zyp/certs/desktop-8m9899c.tail05f2a2.ts.net.key")
+    if os.path.exists(cert_path) and os.path.exists(key_path):
+        app.run(host="0.0.0.0", port=9191, debug=False, ssl_context=(cert_path, key_path))
+    else:
+        print("WARNING: TLS cert not found, falling back to HTTP")
+        app.run(host="0.0.0.0", port=9191, debug=False)

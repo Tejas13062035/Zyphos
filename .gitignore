@@ -12,3 +12,6 @@ core/*.swp
 .aider*
 state/qrcodes/
 reports/
+certs/
+nohup.out
+strix_runs/

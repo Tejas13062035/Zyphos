@@ -48,6 +48,17 @@ def is_webui_running():
         return True
     except (ValueError, ProcessLookupError, OSError):
         return False
+def is_hud_running():
+    pid_file = os.path.expanduser("~/zyp/state/webui_hud.pid")
+    if not os.path.exists(pid_file):
+        return False
+    try:
+        with open(pid_file) as f:
+            pid = int(f.read().strip())
+        os.kill(pid, 0)
+        return True
+    except (ValueError, ProcessLookupError, OSError):
+        return False
 
 def restart_webui():
     log("WATCHDOG: webui down — restarting...")
@@ -60,6 +71,17 @@ def restart_webui():
     with open(os.path.expanduser("~/zyp/state/webui.pid"), "w") as f:
         f.write(str(proc.pid))
     log("WATCHDOG: webui restarted")
+def restart_hud():
+    log("WATCHDOG: webui_hud down — restarting...")
+    proc = subprocess.Popen(
+        [VENV_PYTHON, "scripts/webui_hud.py"],
+        cwd=ZYPHOS_DIR,
+        stdout=open(os.path.expanduser("~/zyp/logs/webui_hud.log"), "a"),
+        stderr=subprocess.STDOUT
+    )
+    with open(os.path.expanduser("~/zyp/state/webui_hud.pid"), "w") as f:
+        f.write(str(proc.pid))
+    log("WATCHDOG: webui_hud restarted")
 
 def restart_reminder():
     log("WATCHDOG: reminder down — restarting...")
@@ -97,6 +119,10 @@ def main():
             restart_webui()
         else:
             log("WATCHDOG: webui OK")
+        if not is_hud_running():
+            restart_hud()
+        else:
+            log("WATCHDOG: webui_hud OK")
         time.sleep(INTERVAL)
 
 
