@@ -99,6 +99,7 @@ def run(args: dict) -> dict:
     theme = args.get("theme", "")
     author = args.get("author", "")
     count = args.get("count", 1)
+    silent = args.get("silent", False)
 
     try:
         results = []
@@ -112,11 +113,12 @@ def run(args: dict) -> dict:
 
         combined = "\n\n---\n\n".join(results)
 
-        if mode == "dialogue":
-            _speak_dialogue(results[0])
-        else:
-            for r in results:
-                _speak(r)
+        if not silent:
+            if mode == "dialogue":
+                _speak_dialogue(results[0])
+            else:
+                for r in results:
+                    _speak(r)
 
         return {"status": "ok", "result": combined}
     except Exception as e:
