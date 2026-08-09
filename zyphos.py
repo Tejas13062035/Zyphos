@@ -285,8 +285,12 @@ OTHER:
         return
 
     if sys.argv[1] == "--briefing":
-        from scripts.briefing import briefing
-        briefing()
+        from plugins.briefing import run as briefing_run
+        language = "hindi"
+        if "--lang" in sys.argv:
+            language = sys.argv[sys.argv.index("--lang") + 1]
+        result = briefing_run({"language": language})
+        print(result.get("result", ""))
         return
 
     if sys.argv[1] == "--greet":
