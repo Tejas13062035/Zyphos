@@ -48,7 +48,7 @@ def ask_groq(prompt: str, system: str = "", max_tokens: int = 150) -> str:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="qwen/qwen3.6-27b",
             messages=messages,
             max_tokens=max_tokens
         )
