@@ -1,5 +1,6 @@
 import requests
 from core.llm import ask_cerebras
+from core.sidecar_url import get_sidecar_url
 
 TOOL_NAME = "wisdom"
 TOOL_DESCRIPTION = "shares a philosophical quote or tells a short philosophical/moral story"
@@ -8,7 +9,7 @@ TOOL_ARGS = {"mode": "str (quote|story|dialogue)", "theme": "str (optional theme
 
 def _speak(text):
     try:
-        requests.post("http://127.0.0.1:5000/speak", json={"text": text}, timeout=5)
+        requests.post(f"{get_sidecar_url()}/speak", json={"text": text}, timeout=5)
     except Exception:
         pass
 
@@ -87,7 +88,7 @@ def _speak_dialogue(dialogue_text: str):
 
     try:
         requests.post(
-            "http://127.0.0.1:5000/speak_batch",
+            f"{get_sidecar_url()}/speak_batch",
             json={"lines": batch},
             timeout=60
         )

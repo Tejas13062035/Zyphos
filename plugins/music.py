@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import subprocess
 import os
 
@@ -17,7 +20,7 @@ def run(args: dict) -> dict:
         try:
             # stop first
             import requests as req
-            req.post("http://127.0.0.1:5000/stop_audio")
+            req.post(f"{SIDECAR_URL}/stop_audio")
             import time
             time.sleep(1)  # wait for VLC to fully close
             
@@ -51,7 +54,7 @@ def run(args: dict) -> dict:
                 return {"error": "download failed after retries"}
             out_path = files[0]
             win_path = r"C:\zyphos_sidecar\\" + os.path.basename(out_path)
-            req.post("http://127.0.0.1:5000/play_audio", json={"path": win_path})
+            req.post(f"{SIDECAR_URL}/play_audio", json={"path": win_path})
             return {"status": "playing", "query": query}
         except Exception as e:
             return {"error": str(e)}
@@ -68,7 +71,7 @@ def run(args: dict) -> dict:
 def stop_music() -> dict:
     try:
         import requests as req
-        req.post("http://127.0.0.1:5000/stop_audio")
+        req.post(f"{SIDECAR_URL}/stop_audio")
     except:
         pass
     return {"status": "stopped"}

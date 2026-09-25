@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import subprocess
 import re
 
@@ -21,7 +24,7 @@ def run(args: dict) -> dict:
     import requests as req
     base = args.get("target", "192.168.31")
     print(f"NETWORK: scanning {base}.0/24 via sidecar...")
-    r = req.post("http://127.0.0.1:5000/network_scan", json={"target": base}, timeout=120)
+    r = req.post(f"{SIDECAR_URL}/network_scan", json={"target": base}, timeout=120)
     return r.json()
 
         

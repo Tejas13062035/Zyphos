@@ -4,7 +4,8 @@ import requests
 import time
 
 VOICEPRINT_FILE = os.path.expanduser("~/zyp/state/voiceprint.npy")
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 AUDIO_PATH = "/mnt/c/zyphos_sidecar/audio.wav"
 THRESHOLD = 0.70  # similarity threshold, tune if needed
 

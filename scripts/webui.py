@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import os
 import json
 from flask import Flask, render_template_string, jsonify, request
@@ -349,7 +352,7 @@ def cancel_goal():
     from core.cancel_flag import request_cancel
     request_cancel()
     try:
-        requests.post("http://127.0.0.1:5000/stop_audio", timeout=3)
+        requests.post(f"{SIDECAR_URL}/stop_audio", timeout=3)
     except Exception as e:
         print(f"CANCEL: failed to reach sidecar stop_audio: {e}")
     return jsonify({"status": "cancel requested"})

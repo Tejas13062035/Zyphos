@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import requests
 from plugins.weather import run as weather_run
 from plugins.news import run as news_run
@@ -36,7 +39,7 @@ LANGUAGE_VOICES = {
 
 def _speak(text: str, voice: str = ENGLISH_VOICE):
     try:
-        requests.post("http://127.0.0.1:5000/speak", json={"text": text, "voice": voice}, timeout=120)
+        requests.post(f"{SIDECAR_URL}/speak", json={"text": text, "voice": voice}, timeout=120)
     except Exception:
         pass
 

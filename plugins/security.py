@@ -14,7 +14,8 @@ TOOL_NAME = "security"
 TOOL_DESCRIPTION = "Security and info tools: generate passwords, lookup IPs/domains, check breaches, WiFi info"
 TOOL_ARGS = {"action": "password|ip_lookup|dns|whois|breach_check|wifi_info|port_scan", "target": "IP, domain, or email"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def generate_password(length=16) -> dict:
     chars = string.ascii_letters + string.digits + "!@#$%^&*"

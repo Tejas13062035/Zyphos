@@ -6,22 +6,32 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import json
 import os
 import numpy as np
+import requests
 from datetime import datetime
 
 MEMORY_FILE = os.path.expanduser("~/zyp/state/memory.json")
 INDEX_FILE = os.path.expanduser("~/zyp/state/memory.index")
+EMBED_MODEL = "qwen3-embedding:0.6b"
+EMBED_DIM = 1024
+OLLAMA_URL = "http://localhost:11434/api/embed"
 
-_model = None
 _index = None
 _entries = []
 
 
+class _OllamaEmbedder:
+    """Drop-in replacement for SentenceTransformer's .encode() using Ollama's embed API."""
+    def encode(self, texts):
+        if isinstance(texts, str):
+            texts = [texts]
+        response = requests.post(OLLAMA_URL, json={"model": EMBED_MODEL, "input": texts}, timeout=120)
+        response.raise_for_status()
+        embeddings = response.json()["embeddings"]
+        return np.array(embeddings, dtype="float32")
+
+
 def _get_model():
-    global _model
-    if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
-    return _model
+    return _OllamaEmbedder()
 
 
 def _get_index():
@@ -32,7 +42,7 @@ def _get_index():
         if os.path.exists(INDEX_FILE) and _entries:
             _index = faiss.read_index(INDEX_FILE)
         else:
-            _index = faiss.IndexFlatL2(384)
+            _index = faiss.IndexFlatL2(EMBED_DIM)
             if _entries:
                 model = _get_model()
                 vectors = model.encode([e["goal"] for e in _entries]).astype("float32")
@@ -149,7 +159,7 @@ def forget(query: str) -> int:
 
     # rebuild index from scratch
     model = _get_model()
-    _index = faiss.IndexFlatL2(384)
+    _index = faiss.IndexFlatL2(EMBED_DIM)
     if remaining:
         vectors = model.encode([e["goal"] for e in remaining]).astype("float32")
         _index.add(vectors)

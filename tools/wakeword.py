@@ -4,7 +4,8 @@ import time
 import os
 import threading
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 CHUNK_PATH = "/mnt/c/zyphos_sidecar/chunk.wav"
 WAKE_WORDS = ["zyphos", "arise", "zyph", "zyfos", "ziphos", "syphos", "wake up"]
 CHUNK_DURATION = 2

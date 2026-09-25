@@ -5,7 +5,8 @@ TOOL_NAME = "youtube"
 TOOL_DESCRIPTION = "Search and open YouTube videos or playlists in browser"
 TOOL_ARGS = {"action": "search|play|playlist", "query": "search term or video name"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def run(args: dict) -> dict:
     action = args.get("action", "search").lower()

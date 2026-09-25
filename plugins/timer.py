@@ -6,7 +6,8 @@ TOOL_NAME = "timer"
 TOOL_DESCRIPTION = "Set a timer or reminder. Speaks when time is up."
 TOOL_ARGS = {"minutes": "number of minutes", "message": "reminder message"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def _ring(message: str):
     try:

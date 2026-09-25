@@ -5,7 +5,8 @@ TOOL_NAME = "whatsapp_bulk"
 TOOL_DESCRIPTION = "Send same WhatsApp message to multiple contacts"
 TOOL_ARGS = {"contacts": "list of phone numbers or contact names", "message": "message to send"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 from plugins.whatsapp import CONTACTS
 

@@ -5,7 +5,8 @@ TOOL_NAME = "whatsapp"
 TOOL_DESCRIPTION = "Send WhatsApp messages via WhatsApp Web"
 TOOL_ARGS = {"phone": "phone number with country code e.g. 919229420080", "message": "message text"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 CONTACTS = {
     "mom": "917488640558",

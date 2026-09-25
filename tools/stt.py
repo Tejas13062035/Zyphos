@@ -3,7 +3,8 @@ import requests
 import time
 import os
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 AUDIO_PATH = "/mnt/c/zyphos_sidecar/audio.wav"
 MODEL_SIZE = "small"
 CONFIDENCE_THRESHOLD = 0.4  # reject transcription below this avg log prob

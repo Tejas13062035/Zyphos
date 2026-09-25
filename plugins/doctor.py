@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import os
 import requests
 from dotenv import load_dotenv
@@ -30,7 +33,7 @@ def _check_cerebras():
 
 def _check_sidecar():
     try:
-        r = requests.get("http://127.0.0.1:5000/status", timeout=5)
+        r = requests.get(f"{SIDECAR_URL}/status", timeout=5)
         return r.status_code == 200
     except Exception:
         return False

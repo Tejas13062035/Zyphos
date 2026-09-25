@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import time
 import os
 import sys
@@ -26,7 +29,7 @@ def log(msg):
 
 def speak(text):
     try:
-        requests.post("http://127.0.0.1:5000/speak", json={"text": text}, timeout=5)
+        requests.post(f"{SIDECAR_URL}/speak", json={"text": text}, timeout=5)
     except Exception:
         pass
 

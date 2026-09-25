@@ -2,7 +2,8 @@ import requests
 import base64
 import os
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 WEBCAM_PATH = "/tmp/zyp_webcam.jpg"
 
 def capture():

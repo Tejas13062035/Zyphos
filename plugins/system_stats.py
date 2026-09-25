@@ -6,7 +6,8 @@ TOOL_NAME = "system_stats"
 TOOL_DESCRIPTION = "Get CPU, RAM, disk usage and battery stats"
 TOOL_ARGS = {"speak": "true/false to speak the result"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def run(args: dict) -> dict:
     speak = args.get("speak", False)

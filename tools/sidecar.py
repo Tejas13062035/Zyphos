@@ -1,6 +1,7 @@
 import requests
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def click(x, y):
     r = requests.post(f"{SIDECAR_URL}/click", json={"x": x, "y": y})

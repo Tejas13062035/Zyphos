@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 import requests
 from core.llm import ask_cerebras
 
@@ -7,7 +10,7 @@ TOOL_ARGS = {"text": "str", "target_lang": "str (e.g. 'Spanish', 'French', 'Hind
 
 def _speak(text):
     try:
-        requests.post("http://127.0.0.1:5000/speak", json={"text": text}, timeout=5)
+        requests.post(f"{SIDECAR_URL}/speak", json={"text": text}, timeout=5)
     except Exception:
         pass
 

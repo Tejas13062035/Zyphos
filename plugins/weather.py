@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from core.location import get_location
+from core.sidecar_url import get_sidecar_url
 
 load_dotenv(os.path.expanduser("~/zyp/.env"))
 
@@ -44,7 +45,7 @@ def run(args: dict) -> dict:
         summary = f"{resolved_city}: {desc}, {temp}°C, feels like {feels}°C, humidity {humidity}%, wind {wind} m/s"
         if args.get("speak", False):
             try:
-                requests.post("http://127.0.0.1:5000/speak", json={"text": summary})
+                requests.post(f"{get_sidecar_url()}/speak", json={"text": summary})
             except:
                 pass
         return {

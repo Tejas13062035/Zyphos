@@ -1,3 +1,6 @@
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
+
 from tools.vision import look
 from tools.sidecar import click, type_text, screenshot, scroll, drag, hotkey
 
@@ -38,13 +41,13 @@ def execute_task(task: dict) -> dict:
         import requests as req
         now = datetime.datetime.now().strftime("%A, %B %d %Y, %I:%M %p")
         text = f"The current date and time is {now}"
-        req.post("http://127.0.0.1:5000/speak", json={"text": text})
+        req.post(f"{SIDECAR_URL}/speak", json={"text": text})
         result = {"status": "spoken", "text": text}
 
     elif desc.startswith("speak ") or desc.startswith("say "):
         import requests as req
         text = desc.replace("speak ", "").replace("say ", "").strip()
-        r = req.post("http://127.0.0.1:5000/speak", json={"text": text})
+        r = req.post(f"{SIDECAR_URL}/speak", json={"text": text})
         result = r.json()
 
     elif "network" in desc or "scan" in desc or "devices" in desc:
@@ -62,7 +65,7 @@ def execute_task(task: dict) -> dict:
             query = query.replace(word, "")
         query = query.strip()
         search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
-        r = req.post("http://127.0.0.1:5000/open_url", json={"url": search_url})
+        r = req.post(f"{SIDECAR_URL}/open_url", json={"url": search_url})
         result = r.json()
 
     elif "open" in desc:
@@ -70,9 +73,9 @@ def execute_task(task: dict) -> dict:
         app_name = desc.replace("open", "").strip()
         # if it's a URL
         if "http" in app_name or "www" in app_name:
-            r = req.post("http://127.0.0.1:5000/open_url", json={"url": app_name})
+            r = req.post(f"{SIDECAR_URL}/open_url", json={"url": app_name})
         else:
-            r = req.post("http://127.0.0.1:5000/open_app", json={"app": app_name})
+            r = req.post(f"{SIDECAR_URL}/open_app", json={"app": app_name})
         result = r.json()
 
     elif "scroll" in desc:

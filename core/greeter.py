@@ -1,7 +1,8 @@
 import requests
 from datetime import datetime
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def speak(text: str):
     try:

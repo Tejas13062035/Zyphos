@@ -112,7 +112,7 @@ def _run_joke(args, desc=""):
 
 TOOL_MAP = {
     "search": lambda args: {"status": "ok", "result": search_summary(args.get("query", args[0] if isinstance(args, list) else ""))},
-    "open_app": lambda args: __import__('requests').post('http://127.0.0.1:5000/open_app', json={"app": args.get("app", "")}).json(),
+    "open_app": lambda args: __import__('requests').post(f"{__import__('core.sidecar_url', fromlist=['get_sidecar_url']).get_sidecar_url()}/open_app", json={"app": args.get("app", "")}).json(),
     "look": lambda args: look(args.get("prompt", "What do you see on this screen?")),
     "system_stats": lambda args: stats_run(args),
     "joke": lambda args: _run_joke(args),

@@ -4,7 +4,8 @@ TOOL_NAME = "clipboard"
 TOOL_DESCRIPTION = "Read or write Windows clipboard content"
 TOOL_ARGS = {"action": "get|set", "text": "text to copy (for set)"}
 
-SIDECAR_URL = "http://127.0.0.1:5000"
+from core.sidecar_url import get_sidecar_url
+SIDECAR_URL = get_sidecar_url()
 
 def run(args: dict) -> dict:
     action = args.get("action", "get").lower()
