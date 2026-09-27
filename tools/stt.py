@@ -87,6 +87,8 @@ def listen_unattended(duration=5) -> str:
     Returns the transcribed text on a confident result, or None if all
     MAX_RECORD_ATTEMPTS fail to clear the confidence threshold."""
     for attempt in range(MAX_RECORD_ATTEMPTS):
+        if attempt > 0:
+            _beep()
         record(duration)
         text, confidence = transcribe()
 
@@ -98,3 +100,11 @@ def listen_unattended(duration=5) -> str:
               else f"STT (unattended): attempt {attempt + 1} failed, giving up")
 
     return None
+
+
+def _beep():
+    """Audible cue before a retry attempt, so the person knows to speak again."""
+    try:
+        requests.post(f"{SIDECAR_URL}/beep")
+    except Exception:
+        pass  # non-critical:— don't let a failed beep break the retry flow
