@@ -40,7 +40,7 @@ def _strip_think_tags(text: str) -> str:
 
 
 def _ask_ollama(model: str, prompt: str, system: str, max_tokens: int,
-                 strip_think: bool = False, keep_alive: str = "5m"):
+                 strip_think: bool = False, keep_alive: str = "5m", think: bool = True):
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -52,6 +52,7 @@ def _ask_ollama(model: str, prompt: str, system: str, max_tokens: int,
             "messages": messages,
             "stream": False,
             "keep_alive": keep_alive,
+            "think": think,
             "options": {"num_predict": max_tokens},
         },
         timeout=120
@@ -86,19 +87,21 @@ def ask_reasoning(prompt: str, system: str = "", max_tokens: int = 800) -> str:
 
 def ask_chat(prompt: str, system: str = "", max_tokens: int = 300) -> str:
     """Casual conversation, quotes, briefing chatter. Local qwen3.5:9b (default,
-    kept warm)."""
+    kept warm). Thinking disabled — this is fast conversational output, not
+    a reasoning task."""
     record_call("ollama_chat")
     try:
-        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m")
+        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m", think=False)
     except Exception:
         return ask_cerebras(prompt, system, max_tokens)
 
 
 def ask_vision(prompt: str, system: str = "", max_tokens: int = 500) -> str:
-    """Vision / OCR. Local qwen3.5:9b (default, multimodal, kept warm)."""
+    """Vision / OCR. Local qwen3.5:9b (default, multimodal, kept warm).
+    Thinking disabled — same reasoning-overhead problem as chat."""
     record_call("ollama_vision")
     try:
-        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m")
+        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m", think=False)
     except Exception:
         return ask_cerebras(prompt, system, max_tokens)
 
