@@ -86,6 +86,12 @@ MONITORING:
   scripts/monitor.py                  TUI dashboard (rich)
   scripts/webui.py                    Web dashboard (localhost:6789)
 
+AMBIENT AWARENESS:
+  zyphos.py --list-people             Show all enrolled people
+  zyphos.py --pending-enrollments     Show unresolved face clusters
+  zyphos.py --name-pending <id> "Name"   Name a pending cluster
+  zyphos.py --promote "Name"          Promote a known person to 'close'
+
 OTHER:
   zyphos.py --help                    Show this message
 
@@ -296,6 +302,66 @@ OTHER:
     if sys.argv[1] == "--greet":
         from core.greeter import greet
         greet()
+        return
+
+    if sys.argv[1] == "--list-people":
+        from tools.face_recognition_backend import PERSONS_DIR
+        import json
+        if not os.path.exists(PERSONS_DIR):
+            print("No enrolled people yet.")
+            return
+        found = False
+        for fname in sorted(os.listdir(PERSONS_DIR)):
+            if fname.endswith(".json"):
+                with open(os.path.join(PERSONS_DIR, fname)) as f:
+                    p = json.load(f)
+                print(f"{p['name']} — {p['category']} — backend: {p['backend']}")
+                found = True
+        if not found:
+            print("No enrolled people yet.")
+        return
+
+    if sys.argv[1] == "--pending-enrollments":
+        from tools.pending_clusters import list_clusters
+        clusters = list_clusters()
+        if not clusters:
+            print("No pending enrollments.")
+            return
+        for c in clusters:
+            print(f"id: {c['id']} — {c['sighting_count']} sighting(s) — "
+                  f"first seen: {c['first_seen']} — last seen: {c['last_seen']}")
+        return
+
+    if sys.argv[1] == "--name-pending":
+        from tools.pending_clusters import resolve_cluster
+        if len(sys.argv) != 4:
+            print('Usage: --name-pending <id> "Name"')
+            return
+        try:
+            path = resolve_cluster(sys.argv[2], sys.argv[3], category="known")
+            print(f"Enrolled '{sys.argv[3]}' -> {path}")
+        except (FileExistsError, FileNotFoundError) as e:
+            print(f"Error: {e}")
+        return
+
+    if sys.argv[1] == "--promote":
+        from tools.face_recognition_backend import PERSONS_DIR
+        import json
+        if len(sys.argv) != 3:
+            print('Usage: --promote "Name"')
+            return
+        name = sys.argv[2]
+        safe_name = name.lower().replace(" ", "_")
+        path = os.path.join(PERSONS_DIR, f"{safe_name}.json")
+        if not os.path.exists(path):
+            print(f"No enrolled person named '{name}' found.")
+            return
+        with open(path) as f:
+            person = json.load(f)
+        person["category"] = "close"
+        with open(path, "w") as f:
+            json.dump(person, f, indent=2)
+        print(f"{name} promoted to 'close'.")
         return
 
     smart = True
