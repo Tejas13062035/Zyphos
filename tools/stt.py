@@ -6,7 +6,7 @@ import os
 from core.sidecar_url import get_sidecar_url
 SIDECAR_URL = get_sidecar_url()
 AUDIO_PATH = "/mnt/c/zyphos_sidecar/audio.wav"
-MODEL_SIZE = "small"
+MODEL_SIZE = "medium"
 CONFIDENCE_THRESHOLD = 0.4  # reject transcription below this avg log prob
 MAX_RECORD_ATTEMPTS = 3
 
@@ -77,5 +77,24 @@ def listen(duration=5, confirm=True):
                 return None
 
         return text
+
+    return None
+
+
+def listen_unattended(duration=5) -> str:
+    """Non-interactive version of listen() for ambient/autonomous use — no
+    input() confirmation prompts, since no one is at a terminal to answer them.
+    Returns the transcribed text on a confident result, or None if all
+    MAX_RECORD_ATTEMPTS fail to clear the confidence threshold."""
+    for attempt in range(MAX_RECORD_ATTEMPTS):
+        record(duration)
+        text, confidence = transcribe()
+
+        if confidence >= CONFIDENCE_THRESHOLD and text:
+            return text
+
+        print(f"STT (unattended): attempt {attempt + 1} low confidence "
+              f"({confidence:.2f}) or empty — retrying" if attempt < MAX_RECORD_ATTEMPTS - 1
+              else f"STT (unattended): attempt {attempt + 1} failed, giving up")
 
     return None
