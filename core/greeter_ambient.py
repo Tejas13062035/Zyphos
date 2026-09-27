@@ -1,5 +1,6 @@
 import time
 from core.llm import ask_chat
+from tools.sidecar import speak
 
 
 def _time_of_day() -> str:
@@ -51,3 +52,11 @@ def generate_greeting(watch_result: dict) -> str:
             f"One short sentence."
         )
         return ask_chat(prompt, max_tokens=40)
+
+
+def greet(watch_result: dict):
+    """Generate and speak the appropriate greeting for a watch_until_resolved() result."""
+    text = generate_greeting(watch_result)
+    speak(text)
+    return text
+
