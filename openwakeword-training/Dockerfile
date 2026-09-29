@@ -1,10 +1,11 @@
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
+FROM nvidia/cuda:12.6.3-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
 # System deps
 RUN apt-get update && apt-get install -y \
+    python3 python3-pip ffmpeg \
     python3.10 python3.10-venv python3.10-dev python3-dev python3-pip \
     git git-lfs curl build-essential portaudio19-dev libsndfile1 \
     && rm -rf /var/lib/apt/lists/* \
@@ -14,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # PyTorch with CUDA 12.1
-RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip install --no-cache-dir torch torchaudio torchcodec --index-url https://download.pytorch.org/whl/cu128
 
 # Training dependencies
 COPY requirements.txt .
@@ -27,6 +28,8 @@ RUN git clone https://github.com/dscripka/openWakeWord openwakeword \
 # Patch: make piper generate_samples import conditional (we use Kokoro, not Piper)
 COPY patches/skip-piper-import.py /tmp/skip-piper-import.py
 RUN python3 /tmp/skip-piper-import.py openwakeword/openwakeword/train.py
+COPY patches/skip-set-audio-backend.py /tmp/skip-set-audio-backend.py
+RUN python3 /tmp/skip-set-audio-backend.py /usr/local/lib/python3.10/dist-packages/torch_audiomentations/utils/io.py
 
 # Download embedding models (small, safe to bake into image)
 RUN mkdir -p openwakeword/openwakeword/resources/models \
