@@ -9,7 +9,7 @@ from plugins.nasa import run as nasa_run
 from plugins.stocks import run as stocks_run
 from plugins.wisdom import run as wisdom_run
 from core.location import get_location
-from core.llm import ask_cerebras
+from core.llm import ask_reasoning
 import re
 
 def _strip_markdown(text: str) -> str:
@@ -55,7 +55,7 @@ def _translate_to_language(text: str, language: str) -> str:
         f"IMPORTANT: Do NOT use any markdown formatting — no asterisks, no bullet points, "
         f"no headers, no dashes. Plain conversational sentences only, as if spoken by a news anchor.\n\nText:\n{text}"
     )
-    result = ask_cerebras(
+    result = ask_reasoning(
         prompt,
         system=f"You are an expert {language.title()} translator who produces natural, fluent spoken {language.title()} for voice assistants. Never use markdown formatting.",
         max_tokens=1200

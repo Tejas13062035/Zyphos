@@ -2,7 +2,7 @@ from core.sidecar_url import get_sidecar_url
 SIDECAR_URL = get_sidecar_url()
 
 import requests
-from core.llm import ask_cerebras
+from core.llm import ask_reasoning
 
 TOOL_NAME = "translate"
 TOOL_DESCRIPTION = "translates text to another language"
@@ -24,7 +24,7 @@ def run(args: dict) -> dict:
     prompt = f"Translate this text to {target_lang}. Respond with ONLY the translation, nothing else:\n\n{text}"
 
     try:
-        result = ask_cerebras(prompt, system="You are a precise translator. Respond only with the translation, no explanations.", max_tokens=300)
+        result = ask_reasoning(prompt, system="You are a precise translator. Respond only with the translation, no explanations.", max_tokens=300)
 
         if result.startswith("LLM_ERROR"):
             return {"status": "error", "result": f"translation failed: {result}"}

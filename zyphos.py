@@ -31,9 +31,12 @@ def run_goal(goal, smart=False, smart_plan_mode=False, critique=False, chain_mod
             result = execute_task(task)
         last_result = result.get("result", "")
         print(f"  ✓ {last_result}")
-    if chain_mode and smart and last_result:
+    is_unrecoverable = isinstance(last_result, str) and "LLM_ERROR:" in last_result
+    if chain_mode and smart and last_result and not is_unrecoverable:
         print(f"[CHAIN] Starting chain from last result...")
         chain(goal, last_result)
+    elif is_unrecoverable:
+        print(f"[CHAIN] Skipping chain — unrecoverable local error: {last_result}")
     save(goal, tasks)
     print("MEMORY: saved")
 
@@ -235,7 +238,7 @@ OTHER:
             try:
                 goal = listen(5)
                 print(f"GOAL: {goal}")
-                run_goal(goal, smart=True)
+                run_goal(goal, smart=True, smart_plan_mode=True, critique=True, chain_mode=True)
             except Exception as e:
                 print(f"WAKEWORD: error — {e}")
 

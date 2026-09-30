@@ -27,7 +27,13 @@ def _get_gateway_ip():
 def get_sidecar_url():
     global _cached_url
     if _cached_url:
-        return _cached_url
+        try:
+            r = requests.get(f"{_cached_url}/status", timeout=1)
+            if r.status_code == 200:
+                return _cached_url
+        except Exception:
+            pass
+        _cached_url = None  # cached URL stopped working, re-detect below
 
     candidates = ["http://127.0.0.1:5000"]
     gateway = _get_gateway_ip()
@@ -43,7 +49,5 @@ def get_sidecar_url():
         except Exception:
             continue
 
-    # nothing worked, default to loopback and let the caller's
-    # own error handling surface the connection failure
     _cached_url = candidates[0]
     return candidates[0]

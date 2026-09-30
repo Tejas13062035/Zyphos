@@ -82,6 +82,11 @@ def critique(
         A dictionary containing at least ``passed`` (bool) and ``reason`` (str).
     """
     # Ensure ``args`` is always a JSON‑serialisable object.
+    # Unrecoverable environment errors (Ollama unreachable, model missing, etc.)
+    # can't be fixed by retrying or replanning — fail immediately, don't waste
+    # LLM calls or trigger chaining on something reasoning can't solve.
+    if isinstance(result, str) and "LLM_ERROR:" in result:
+        return {"passed": False, "reason": result, "unrecoverable": True}
     args_obj: Dict[str, Any] = args if isinstance(args, dict) else {}
     args_str = json.dumps(args_obj)
 

@@ -1,5 +1,5 @@
 import requests
-from core.llm import ask_cerebras
+from core.llm import ask_reasoning
 from core.sidecar_url import get_sidecar_url
 
 TOOL_NAME = "wisdom"
@@ -30,7 +30,7 @@ def _get_quote(theme="", author=""):
             f"Respond with ONLY the quote in quotes followed by an em dash and the author name. No other text."
         )
 
-    result = ask_cerebras(prompt, system="You are a knowledgeable source of real philosophical quotes from diverse thinkers. Vary your author choice each time. Only cite quotes you are confident are accurate.", max_tokens=800)
+    result = ask_reasoning(prompt, system="You are a knowledgeable source of real philosophical quotes from diverse thinkers. Vary your author choice each time. Only cite quotes you are confident are accurate.", max_tokens=800)
 
     if result.startswith("LLM_ERROR"):
         return "The unexamined life is not worth living. — Socrates"
@@ -42,7 +42,7 @@ def _get_story(theme="", author=""):
     theme_prompt = f" about {theme}" if theme else ""
     style_prompt = f", written in the philosophical style and worldview of {author}" if author else ""
     prompt = f"Write a short philosophical parable or moral story{theme_prompt}{style_prompt}, in the style of Aesop or a Zen koan. Keep it under 150 words. End with a one-line moral."
-    story = ask_cerebras(prompt, system="You are a wise storyteller who writes short, thought-provoking parables.", max_tokens=800)
+    story = ask_reasoning(prompt, system="You are a wise storyteller who writes short, thought-provoking parables.", max_tokens=800)
     return story.strip()
 
 def _get_dialogue(theme="", author=""):
@@ -55,7 +55,7 @@ def _get_dialogue(theme="", author=""):
         f"{author_name.upper()}: [line]\n"
         f"(continue for 4-6 exchanges total, end with a one-line moral prefixed by MORAL:)"
     )
-    result = ask_cerebras(prompt, system="You write short, insightful philosophical dialogues in clean alternating format.", max_tokens=800)
+    result = ask_reasoning(prompt, system="You write short, insightful philosophical dialogues in clean alternating format.", max_tokens=800)
 
     if result.startswith("LLM_ERROR"):
         return "STUDENT: What is wisdom?\nPHILOSOPHER: Knowing that you know nothing.\nMORAL: True wisdom begins with humility."

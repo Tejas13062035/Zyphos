@@ -9,7 +9,6 @@ from openwakeword.model import Model
 
 from core.sidecar_url import get_sidecar_url
 
-SIDECAR_URL = get_sidecar_url()
 WIN_PATH = r"C:\zyphos_sidecar\chunk.wav"
 WSL_PATH = Path("/mnt/c/zyphos_sidecar/chunk.wav")
 MODEL_PATH = str(Path.home() / "zyp" / "state" / "models" / "zyphos.onnx")
@@ -32,7 +31,8 @@ def _get_model():
 
 def _record_clip():
     WSL_PATH.unlink(missing_ok=True)
-    requests.post(f"{SIDECAR_URL}/record_chunk", json={"duration": CLIP_DURATION})
+    sidecar_url = get_sidecar_url()
+    requests.post(f"{sidecar_url}/record_chunk", json={"duration": CLIP_DURATION})
 
     deadline = time.time() + CLIP_DURATION + 8
     while time.time() < deadline and not WSL_PATH.exists():

@@ -21,16 +21,13 @@ from core.plugin_loader import load_plugins
 from core.critic import critique
 from tools.search import search_summary
 from tools.vision import look
-from core.llm import ask_cerebras, ask_groq
+from core.llm import ask_tool
 from tools.sidecar import click, type_text, screenshot, scroll, drag, hotkey
 from tools.filesystem import read_file, write_file, list_dir, delete_file
 from tools.shell import run_shell
 
 def ask(prompt: str, system: str = "", max_tokens: int = 150) -> str:
-    result = ask_cerebras(prompt, system, max_tokens)
-    if result.startswith("LLM_ERROR"):
-        result = ask_groq(prompt, system, max_tokens)
-    return result
+    return ask_tool(prompt, system, max_tokens)
 
 def _build_system_prompt() -> str:
     """
@@ -279,6 +276,11 @@ def smart_execute_with_critique(task: Union[dict, str], max_retries: int = 2) ->
             return result
 
         reason = verdict.get("reason", "unknown")
+
+        if verdict.get("unrecoverable"):
+            print(f"[CRITIC] Unrecoverable error, not retrying: {reason}")
+            return result
+
         print(f"[CRITIC] Attempt {attempt + 1} failed: {reason}")
 
         if attempt < max_retries:

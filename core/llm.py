@@ -5,18 +5,28 @@ from core.quota_tracker import record_call
 
 # -----------------------------------------------------------
 # LOCAL MODEL ROUTING (Ollama, HP Omen - Ultra 7 255H / RTX 5050 8GB)
-# Task-specific models, local-first. Falls back to cloud (Cerebras)
-# only if Ollama is unreachable or the local call errors out.
+# Task-specific models, local-first, local-only. No cloud fallback.
+#
+# granite4.1 is the default, kept warm long — it's the tool-calling model
+# and every CLI/voice goal routes through smart_execute() -> ask_tool(),
+# so it's the actual hot path, not qwen3.5. qwen3.5 stays available for
+# reasoning, vision, and code-adjacent quality, and is used explicitly
+# and directly (not via ask_chat) anywhere warm, natural tone genuinely
+# matters, like the ambient-awareness greeting flow — granite tends to
+# break character with "as a digital entity..." caveats that don't fit
+# a greeting.
 # -----------------------------------------------------------
 
 OLLAMA_URL = "http://localhost:11434/api/chat"   # native endpoint — needed for keep_alive control
 
-MODEL_TOOL = "granite4.1:8b-q4_K_M"       # plugin / tool-calling routing
-MODEL_DEFAULT = "qwen3.5:9b"              # general, reasoning, chitchat, vision — always-loaded default
+MODEL_DEFAULT = "granite4.1:8b-q4_K_M"      # tool-calling + general chat — always-loaded default
+MODEL_REASONING = "qwen3.5:9b"              # complex reasoning, vision, and warm/natural tone on demand
 MODEL_CODE = "qwen2.5-coder:7b-instruct-q4_K_M"  # code generation / explanation
 
 PROFILE_FILE = os.path.expanduser("~/zyp/state/user_profile.txt")
 PERSONALITY_FILE = os.path.expanduser("~/zyp/state/personality.json")
+
+LOCAL_UNAVAILABLE = "LLM_ERROR: local Ollama unavailable, no cloud fallback configured"
 
 
 def load_profile():
@@ -40,7 +50,7 @@ def _strip_think_tags(text: str) -> str:
 
 
 def _ask_ollama(model: str, prompt: str, system: str, max_tokens: int,
-                 strip_think: bool = False, keep_alive: str = "5m", think: bool = True):
+                 strip_think: bool = False, keep_alive: str = "5m", think: bool = False):
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -65,86 +75,70 @@ def _ask_ollama(model: str, prompt: str, system: str, max_tokens: int,
 
 
 def ask_tool(prompt: str, system: str = "", max_tokens: int = 300) -> str:
-    """Tool-calling / plugin routing. Fast, local, granite4.1. Short keep_alive
-    so it evicts fast and qwen3.5 reclaims VRAM."""
+    """Tool-calling / plugin routing. Local, granite4.1. This is the real hot
+    path — every CLI goal and voice command routes through here — so it's
+    kept warm long."""
     record_call("ollama_tool")
     try:
-        return _ask_ollama(MODEL_TOOL, prompt, system, max_tokens, keep_alive="1m")
+        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m")
     except Exception:
-        return ask_cerebras(prompt, system, max_tokens)
+        return LOCAL_UNAVAILABLE
 
 
 def ask_reasoning(prompt: str, system: str = "", max_tokens: int = 800) -> str:
-    """Complex multi-step planning / reasoning. Local qwen3.5:9b (default model,
-    kept warm)."""
+    """Complex multi-step planning / reasoning. Local qwen3.5:9b, swapped in
+    on demand."""
     record_call("ollama_reasoning")
     try:
-        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens,
-                            strip_think=True, keep_alive="30m")
+        return _ask_ollama(MODEL_REASONING, prompt, system, max_tokens,
+                            strip_think=True, keep_alive="5m")
     except Exception:
-        return ask_cerebras(prompt, system, max_tokens)
+        return LOCAL_UNAVAILABLE
 
 
 def ask_chat(prompt: str, system: str = "", max_tokens: int = 300) -> str:
-    """Casual conversation, quotes, briefing chatter. Local qwen3.5:9b (default,
-    kept warm). Thinking disabled — this is fast conversational output, not
-    a reasoning task."""
+    """Casual conversation, quotes, briefing chatter. Local granite4.1 (default,
+    kept warm)."""
     record_call("ollama_chat")
     try:
-        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m", think=False)
+        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m")
     except Exception:
-        return ask_cerebras(prompt, system, max_tokens)
+        return LOCAL_UNAVAILABLE
+
+
+def ask_warm_chat(prompt: str, system: str = "", max_tokens: int = 300) -> str:
+    """Warm, natural conversational tone specifically — qwen3.5, swapped in
+    on demand. Use this (not ask_chat) anywhere tone matters and granite's
+    tendency to caveat 'as a digital entity...' would feel wrong, e.g. the
+    ambient-awareness greeting flow."""
+    record_call("ollama_warm_chat")
+    try:
+        return _ask_ollama(MODEL_REASONING, prompt, system, max_tokens, keep_alive="5m", think=False)
+    except Exception:
+        return LOCAL_UNAVAILABLE
 
 
 def ask_vision(prompt: str, system: str = "", max_tokens: int = 500) -> str:
-    """Vision / OCR. Local qwen3.5:9b (default, multimodal, kept warm).
+    """Vision / OCR. Local qwen3.5:9b (multimodal), swapped in on demand.
     Thinking disabled — same reasoning-overhead problem as chat."""
     record_call("ollama_vision")
     try:
-        return _ask_ollama(MODEL_DEFAULT, prompt, system, max_tokens, keep_alive="30m", think=False)
+        return _ask_ollama(MODEL_REASONING, prompt, system, max_tokens, keep_alive="5m", think=False)
     except Exception:
-        return ask_cerebras(prompt, system, max_tokens)
+        return LOCAL_UNAVAILABLE
 
 
 def ask_code(prompt: str, system: str = "", max_tokens: int = 800) -> str:
-    """Code generation / explanation. Local qwen2.5-coder. Short keep_alive
-    so it evicts fast and qwen3.5 reclaims VRAM."""
+    """Code generation / explanation. Local qwen2.5-coder, swapped in on demand."""
     record_call("ollama_code")
     try:
         return _ask_ollama(MODEL_CODE, prompt, system, max_tokens, keep_alive="1m")
     except Exception:
-        return ask_cerebras(prompt, system, max_tokens)
-
-
-def ask_cerebras(prompt: str, system: str = "", max_tokens: int = 500) -> str:
-    """Cloud fallback when local Ollama is unreachable or errors out."""
-    record_call("cerebras")
-    try:
-        import os
-        from cerebras.cloud.sdk import Cerebras
-        client = Cerebras(api_key=os.getenv("CEREBRAS_API_KEY"))
-        messages = []
-        if system:
-            messages.append({"role": "system", "content": system})
-        messages.append({"role": "user", "content": prompt})
-        response = client.chat.completions.create(
-            model="gpt-oss",
-            messages=messages,
-            max_tokens=max_tokens
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        return f"LLM_ERROR: {e}"
+        return LOCAL_UNAVAILABLE
 
 
 def ask(prompt: str, system: str = "", max_tokens: int = 150) -> str:
-    """Default entry point. Local-first via qwen3.5:9b (always-loaded default
-    model), cloud fallback if Ollama's down."""
+    """Default entry point. Local-only via granite4.1 (always-loaded default model)."""
     profile = load_profile()
     full_system = f"USER PROFILE:\n{profile}\n\n{system}" if profile else system
     return ask_chat(prompt, full_system, max_tokens)
-
-
-
-
-
