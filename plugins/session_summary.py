@@ -11,7 +11,7 @@ def run(args=None):
     try:
         result = subprocess.run(
             ["git", "log", f"-{count}", "--oneline"],
-            capture_output=True, text=True, cwd="/home/tejas100x/zyp", timeout=10
+            capture_output=True, text=True, cwd="/home/tejas_n/zyp", timeout=10
         )
         commits = result.stdout.strip()
         if not commits:

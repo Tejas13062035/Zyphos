@@ -1,6 +1,6 @@
 #!/bin/bash
 # Starts daemon, watchdog, web UI, and event reminder together
-echo "$(date): start_all.sh reached" >> /home/tejas100x/zyp/logs/taskscheduler_canary.log
+echo "$(date): start_all.sh reached" >> /home/tejas_n/zyp/logs/taskscheduler_canary.log
 cd ~/zyp
 source venv/bin/activate
 
