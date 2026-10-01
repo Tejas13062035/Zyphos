@@ -3,6 +3,7 @@
 echo "$(date): start_all.sh reached" >> /home/tejas_n/zyp/logs/taskscheduler_canary.log
 cd ~/zyp
 source venv/bin/activate
+export PYTHONPATH="$PWD:$PYTHONPATH"
 
 echo "Starting Zyphos daemon..."
 if ! pgrep -f "zyphos.py --daemon" > /dev/null; then
