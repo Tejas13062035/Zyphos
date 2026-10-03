@@ -62,5 +62,20 @@ def verify(duration=4) -> bool:
         print(f"VOICE AUTH: Error — {e}")
         return False
 
+def verify_file(path: str) -> bool:
+    if not os.path.exists(VOICEPRINT_FILE):
+        print("VOICE AUTH: No voiceprint found. Run --enroll first.")
+        return False
+    encoder = _get_encoder()
+    stored = np.load(VOICEPRINT_FILE)
+    try:
+        current = _get_embedding(encoder, path)
+        similarity = np.dot(stored, current) / (np.linalg.norm(stored) * np.linalg.norm(current))
+        print(f"VOICE AUTH: Similarity score: {similarity:.3f}")
+        return similarity >= THRESHOLD
+    except Exception as e:
+        print(f"VOICE AUTH: Error — {e}")
+        return False
+
 def is_enrolled() -> bool:
     return os.path.exists(VOICEPRINT_FILE)

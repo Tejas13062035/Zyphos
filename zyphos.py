@@ -233,11 +233,18 @@ OTHER:
 
         def on_wake():
             from tools.sidecar import speak
+            from core.voice_auth import verify_file, AUDIO_PATH
             speak("Yes?")
             print("WAKEWORD: listening for command...")
             try:
                 goal = listen(5)
                 print(f"GOAL: {goal}")
+
+                if not verify_file(AUDIO_PATH):
+                    print("WAKEWORD: voice not verified, ignoring command")
+                    speak("I don't recognize that voice.")
+                    return
+
                 run_goal(goal, smart=True, smart_plan_mode=True, critique=True, chain_mode=True)
             except Exception as e:
                 print(f"WAKEWORD: error — {e}")

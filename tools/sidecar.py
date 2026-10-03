@@ -27,14 +27,18 @@ def hotkey(keys: list):
     r = requests.post(f"{SIDECAR_URL}/hotkey", json={"keys": keys})
     return r.json()
 
+def _get_kokoro_url():
+    from core.sidecar_url import get_sidecar_url
+    sidecar_host = get_sidecar_url().split("://")[1].split(":")[0]
+    return f"http://{sidecar_host}:8880/v1/audio/speech"
+
 def speak(text: str, voice: str = None):
     if voice is None:
         from core.language_detect import get_voice_for_text
         voice = get_voice_for_text(text)
-    return speak_edge(text, voice)
+    return speak_kokoro(text, voice)
 
-def speak_edge(text: str, voice: str = "en-GB-RyanNeural"):
-    import subprocess
+def speak_kokoro(text: str, voice: str = "bm_george"):
     import shutil
     import time
     from datetime import datetime
@@ -42,14 +46,18 @@ def speak_edge(text: str, voice: str = "en-GB-RyanNeural"):
     audio_wsl = f"/tmp/zyp_tts_{timestamp}.mp3"
     audio_win_wsl = f"/mnt/c/zyphos_sidecar/zyp_tts_{timestamp}.mp3"
     audio_win = f"C:\\zyphos_sidecar\\zyp_tts_{timestamp}.mp3"
-    subprocess.run([
-        "edge-tts", "--text", text,
-        "--voice", voice,
-        "--write-media", audio_wsl
-    ])
+
+    response = requests.post(
+        _get_kokoro_url(),
+        json={"model": "kokoro", "input": text, "voice": voice, "response_format": "mp3"},
+        timeout=60
+    )
+    response.raise_for_status()
+    with open(audio_wsl, "wb") as f:
+        f.write(response.content)
+
     shutil.copy(audio_wsl, audio_win_wsl)
     r = requests.post(f"{SIDECAR_URL}/play", json={"path": audio_win})
-    # wait based on text length — roughly 15 chars per second for en-GB-RyanNeural
     wait_time = max(2, len(text) / 15)
     time.sleep(wait_time)
     return r.json()
