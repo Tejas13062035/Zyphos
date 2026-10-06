@@ -1,5 +1,5 @@
 import time
-from tools.webcam import capture
+from tools.esp32_cam import capture
 from tools.face_recognition_backend import identify
 from tools.pending_clusters import record_sighting
 
