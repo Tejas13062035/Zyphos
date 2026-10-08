@@ -18,7 +18,7 @@ THRESHOLD = 0.5
 COOLDOWN_SECONDS = 3  # avoid re-triggering repeatedly on one long utterance
 
 _model = None
-
+busy = threading.Event()  # set while a command is being handled (any trigger source)
 
 def _get_model():
     global _model
@@ -51,6 +51,9 @@ def listen_loop(on_wake):
     last_trigger = 0
 
     while True:
+        if busy.is_set():
+            time.sleep(0.2)
+            continue
         audio = _record_clip()
         if audio is None:
             continue

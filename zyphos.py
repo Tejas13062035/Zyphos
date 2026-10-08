@@ -229,7 +229,7 @@ OTHER:
         return
 
     if sys.argv[1] == "--wakeword":
-        from tools.wakeword import start as wakeword_start
+        from tools.wakeword import start as wakeword_start, busy as wake_busy
 
         def on_wake():
             from tools.sidecar import speak
@@ -250,7 +250,45 @@ OTHER:
                 print(f"WAKEWORD: error — {e}")
 
         print("WAKEWORD: starting — say 'Zyphos' or 'Arise' to activate")
-        t = wakeword_start(on_wake)
+        import threading
+        import time as _time
+        from pathlib import Path as _Path
+
+        _raw_on_wake = on_wake
+        _wake_lock = threading.Lock()
+
+        def on_wake_guarded():
+            # one wake at a time, whether it came from openWakeWord or the VC-01
+            if not _wake_lock.acquire(blocking=False):
+                return
+            wake_busy.set()
+            try:
+                _raw_on_wake()
+            except Exception as e:
+                print(f"WAKEWORD: error — {e}")
+            finally:
+                wake_busy.clear()
+                _wake_lock.release()
+
+        def _vc01_watch():
+            flag = _Path(__file__).resolve().parent / "state" / "vc01_wake"
+
+            def mtime():
+                try:
+                    return flag.stat().st_mtime
+                except OSError:
+                    return 0
+
+            last = mtime()
+            while True:
+                _time.sleep(0.3)
+                if mtime() != last:
+                    print("WAKEWORD: VC-01 trigger")
+                    on_wake_guarded()
+                    last = mtime()   # ignore triggers that arrived while we were busy
+
+        threading.Thread(target=_vc01_watch, daemon=True).start()
+        t = wakeword_start(on_wake_guarded)
         try:
             while True:
                 import time as _time
