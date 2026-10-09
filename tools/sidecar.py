@@ -28,9 +28,7 @@ def hotkey(keys: list):
     return r.json()
 
 def _get_kokoro_url():
-    from core.sidecar_url import get_sidecar_url
-    sidecar_host = get_sidecar_url().split("://")[1].split(":")[0]
-    return f"http://{sidecar_host}:8880/v1/audio/speech"
+    return "http://localhost:8880/v1/audio/speech"
 
 def speak(text: str, voice: str = None):
     if voice is None:
@@ -50,7 +48,7 @@ def speak_kokoro(text: str, voice: str = "bm_george"):
     response = requests.post(
         _get_kokoro_url(),
         json={"model": "kokoro", "input": text, "voice": voice, "response_format": "mp3"},
-        timeout=60
+        timeout=(3, 60)
     )
     response.raise_for_status()
     with open(audio_wsl, "wb") as f:
