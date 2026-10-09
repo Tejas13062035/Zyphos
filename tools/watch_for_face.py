@@ -1,19 +1,26 @@
+import shutil
 import time
 from tools.esp32_cam import capture
 from tools.face_recognition_backend import identify
 from tools.pending_clusters import record_sighting
 
-BURST_DURATION = 2.5       # seconds per attempt
-BURST_FRAME_GAP = 0.5      # seconds between frames within a burst
+BURST_FRAMES = 6           # frames examined per attempt
+BURST_MAX_SECONDS = 15     # safety cap per attempt (a frame can take a few seconds over WiFi)
+BURST_FRAME_GAP = 0.3      # seconds between frames within a burst
 MAX_ATTEMPTS_NO_FACE = 3   # total attempts if nothing is ever detected
 MAX_ATTEMPTS_UNKNOWN = 2   # total attempts once a face has been seen (even if unmatched)
 
 
 def _burst_once():
-    """Capture and identify frames for BURST_DURATION seconds.
-    Returns the first non-'no_face_detected' result, or None if nothing found."""
+    """Capture and identify up to BURST_FRAMES frames.
+    Returns a 'known' result as soon as one frame matches. If the frames show only
+    unmatched faces, returns the first of them (its image is copied so later captures
+    can't overwrite it). Returns None if no frame contains a face."""
     start = time.time()
-    while (time.time() - start) < BURST_DURATION:
+    first_seen = None
+    for _ in range(BURST_FRAMES):
+        if (time.time() - start) > BURST_MAX_SECONDS:
+            break
         try:
             image_path = capture()
         except Exception:
@@ -21,13 +28,21 @@ def _burst_once():
             continue
 
         result = identify(image_path)
-        if result["status"] != "no_face_detected":
+        status = result["status"]
+
+        if status == "known":
             result["_image_path"] = image_path
             return result
 
+        if status != "no_face_detected" and first_seen is None:
+            keep = f"/tmp/zyp_face_{int(time.time() * 1000)}.jpg"
+            shutil.copy(image_path, keep)
+            result["_image_path"] = keep
+            first_seen = result
+
         time.sleep(BURST_FRAME_GAP)
 
-    return None
+    return first_seen
 
 
 def watch_until_resolved() -> dict:
