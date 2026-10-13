@@ -55,7 +55,65 @@ def speak_kokoro(text: str, voice: str = "bm_george"):
         f.write(response.content)
 
     shutil.copy(audio_wsl, audio_win_wsl)
-    r = requests.post(f"{SIDECAR_URL}/play", json={"path": audio_win})
-    wait_time = max(2, len(text) / 15)
-    time.sleep(wait_time)
+    r = requests.post(f"{SIDECAR_URL}/play", json={"path": audio_win})   # blocks until playback finishes
     return r.json()
+
+
+import queue
+import re
+import threading
+import time
+
+
+def _kokoro_file(text: str, voice: str) -> str:
+    """Generate speech for one chunk of text. Returns the Windows path of the mp3."""
+    import shutil
+    from datetime import datetime
+    ts = datetime.now().strftime("%H%M%S%f")
+    wsl_tmp = f"/tmp/zyp_tts_{ts}.mp3"
+    win_wsl = f"/mnt/c/zyphos_sidecar/zyp_tts_{ts}.mp3"
+    win = f"C:\\zyphos_sidecar\\zyp_tts_{ts}.mp3"
+    r = requests.post(
+        _get_kokoro_url(),
+        json={"model": "kokoro", "input": text, "voice": voice, "response_format": "mp3"},
+        timeout=(3, 120),
+    )
+    r.raise_for_status()
+    with open(wsl_tmp, "wb") as f:
+        f.write(r.content)
+    shutil.copy(wsl_tmp, win_wsl)
+    return win
+
+
+speak_timing = {}   # filled by speak_fast: seconds until the first sentence started playing
+
+
+def speak_fast(text: str, voice: str = None):
+    """Speak sentence by sentence: sentence 2 is generated while sentence 1 plays."""
+    if voice is None:
+        from core.language_detect import get_voice_for_text
+        voice = get_voice_for_text(text)
+    parts = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s.strip()]
+    if not parts:
+        return
+    speak_timing.clear()
+    t_start = time.time()
+    q = queue.Queue()
+
+    def producer():
+        try:
+            for part in parts:
+                q.put(_kokoro_file(part, voice))
+        except Exception as e:
+            print(f"[speak_fast] generation failed: {e}")
+        finally:
+            q.put(None)
+
+    threading.Thread(target=producer, daemon=True).start()
+    while True:
+        path = q.get()
+        if path is None:
+            break
+        if "first_audio_s" not in speak_timing:
+            speak_timing["first_audio_s"] = round(time.time() - t_start, 2)   # first sentence is ready and is sent to play
+        requests.post(f"{SIDECAR_URL}/play", json={"path": path})

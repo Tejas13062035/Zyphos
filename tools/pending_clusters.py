@@ -4,7 +4,7 @@ import time
 import shutil
 import numpy as np
 
-from tools.face_recognition_backend import BACKEND, get_quality_score
+from tools.face_recognition_backend import BACKEND, THRESHOLD_SFACE, get_quality_score
 
 PENDING_DIR = os.path.expanduser("~/zyp/memory/persons/pending")
 
@@ -64,11 +64,12 @@ def _match_against_clusters(embedding: list):
     for c in clusters:
         centroid = _load_cluster_embedding(c["id"])
 
-        if BACKEND == "insightface":
+        if BACKEND in ("insightface", "sface"):
             sim = float(
                 (centroid / np.linalg.norm(centroid)) @ (embedding / np.linalg.norm(embedding))
             )
-            if sim >= THRESHOLD_INSIGHTFACE and (best_score is None or sim > best_score):
+            threshold = THRESHOLD_SFACE if BACKEND == "sface" else THRESHOLD_INSIGHTFACE
+            if sim >= threshold and (best_score is None or sim > best_score):
                 best_id, best_score = c["id"], sim
         else:
             dist = float(np.linalg.norm(centroid - embedding))

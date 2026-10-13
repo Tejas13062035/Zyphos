@@ -1,3 +1,4 @@
+import json
 from core.llm import ask
 
 SYSTEM_PROMPT = """You are a task planner for an automation system. Given a goal, output a JSON array of tasks.

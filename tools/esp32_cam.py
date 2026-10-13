@@ -15,7 +15,7 @@ CAPTURE_DIR = ROOT / "state" / "captures"
 CAPTURE_PATH = "/tmp/zyp_esp32_cam.jpg"
 
 STATE_NAMES = {0: "none", 1: "moving", 2: "stationary", 3: "moving+stationary"}
-SCAN_COOLDOWN_S = 20
+SCAN_COOLDOWN_S = 60      # a network scan is hard on a phone hotspot: at most one a minute
 
 _base = None
 _last_scan = 0.0
@@ -80,7 +80,7 @@ def _local_prefixes():
 
 def discover():
     candidates = [f"http://{p}.{i}" for p in _local_prefixes() for i in range(1, 255)]
-    ex = cf.ThreadPoolExecutor(max_workers=100)
+    ex = cf.ThreadPoolExecutor(max_workers=32)
     futs = {ex.submit(_is_esp, b, 0.6): b for b in candidates}
     try:
         for f in cf.as_completed(futs):
@@ -99,7 +99,7 @@ def base_url():
     for cand in (_read_cached(), os.environ.get("ESP_CAM_URL")):
         if cand:
             cand = _normalize(cand)
-            if _is_esp(cand, 1.5):
+            if _is_esp(cand, 5):          # a busy ESP can take a few seconds; slow is not gone
                 _base = cand
                 return _base
     if time.time() - _last_scan < SCAN_COOLDOWN_S:
@@ -117,11 +117,11 @@ def base_url():
 _fails = 0
 
 
-def _get(path, timeout):
+def _get(path, timeout, tries=2):
     """A busy ESP is retried at the same address; only repeated failures trigger a re-scan."""
     global _base, _fails
     last_err = None
-    for _ in range(2):
+    for _ in range(tries):
         try:
             r = requests.get(base_url() + path, timeout=timeout)
             _fails = 0
@@ -152,6 +152,21 @@ def capture_to_file(prefix="snap"):
     path = CAPTURE_DIR / f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
     path.write_bytes(r.content)
     return str(path)
+
+
+last_capture = {}   # timing of the most recent capture_bytes() call, for diagnostics
+
+
+def capture_bytes(timeout=5, tries=1) -> bytes:
+    """Fetch one JPEG as raw bytes. Nothing is written to disk, so several threads can't overwrite each other's file.
+    Also records last_capture = {"ttfb": s until the ESP answered (connect + frame grab), "total": s, "bytes": n}."""
+    global last_capture
+    t0 = time.time()
+    r = _get("/capture", timeout, tries)       # scans fail fast: a stuck ESP must not pile up 20 s requests
+    r.raise_for_status()
+    body = r.content
+    last_capture = {"ttfb": r.elapsed.total_seconds(), "total": time.time() - t0, "bytes": len(body)}
+    return body
 
 
 def presence(timeout=2):

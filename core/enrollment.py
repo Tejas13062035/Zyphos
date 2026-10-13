@@ -10,6 +10,13 @@ _NAME_PATTERNS = [
     r"^([A-Za-z]+(?:\s[A-Za-z]+)?)\.?$",  # bare name with nothing else, e.g. "Tejas"
 ]
 
+# One- or two-word replies that are NOT names. Without this, "Yes" or "Hello" gets enrolled as the person's name.
+_NOT_NAMES = {
+    "yes", "yeah", "yep", "no", "nope", "hello", "hi", "hey", "okay", "ok", "sure", "fine", "good",
+    "what", "who", "why", "huh", "sorry", "thanks", "thank", "please", "stop", "cancel", "nothing",
+    "none", "nevermind", "maybe", "hmm", "um", "uh", "you", "me", "here", "welcome", "pardon",
+}
+
 
 def _extract_name_simple(text: str) -> str | None:
     """Step 1: cheap regex extraction for common phrasings. Returns None if
@@ -19,7 +26,8 @@ def _extract_name_simple(text: str) -> str | None:
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             name = match.group(1).strip()
-            if name and len(name.split()) <= 2:  # reject anything that's clearly not just a name
+            if (name and len(name.split()) <= 2
+                    and not any(w.lower() in _NOT_NAMES for w in name.split())):
                 return name.title()
     return None
 
@@ -32,8 +40,13 @@ def _extract_name_llm(text: str) -> str | None:
         f"Extract ONLY their name, nothing else. If no name is actually present, "
         f'respond with exactly: NONE'
     )
-    result = ask_chat(prompt, max_tokens=20).strip()
+    result = ask_chat(prompt, max_tokens=20).strip().strip(".\"'")
     if result.upper() == "NONE" or not result:
+        return None
+    words = result.split()
+    if len(words) > 2 or not all(w.isalpha() for w in words):
+        return None
+    if any(w.lower() in _NOT_NAMES for w in words):
         return None
     return result.title()
 
