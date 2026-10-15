@@ -36,7 +36,7 @@ def speak(text: str, voice: str = None):
         voice = get_voice_for_text(text)
     return speak_kokoro(text, voice)
 
-def speak_kokoro(text: str, voice: str = "bm_george"):
+def speak_kokoro(text: str, voice: str = "am_onyx"):
     import shutil
     import time
     from datetime import datetime

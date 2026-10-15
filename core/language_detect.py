@@ -4,7 +4,7 @@
 # DEFAULT_VOICE below. If either language matters, a separate TTS engine
 # would be needed just for those two.
 VOICE_MAP = {
-    "en": "bm_george",
+    "en": "am_onyx", # "af_sky", "af_nova", "am_echo",
     "hi": "hf_alpha",
     "es": "em_alex",
     "fr": "ff_siwis",
@@ -12,7 +12,7 @@ VOICE_MAP = {
     "zh-cn": "zm_yunxi",
 }
 
-DEFAULT_VOICE = "bm_george"
+DEFAULT_VOICE = "am_onyx"
 
 def detect_language(text: str) -> str:
     """Detect language of text, return ISO code."""

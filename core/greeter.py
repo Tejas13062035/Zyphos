@@ -6,7 +6,7 @@ SIDECAR_URL = get_sidecar_url()
 
 def speak(text: str):
     try:
-        requests.post(f"{SIDECAR_URL}/speak", json={"text": text})
+        from tools.sidecar import speak as _kokoro_speak; _kokoro_speak(text)
     except:
         print(text)
 

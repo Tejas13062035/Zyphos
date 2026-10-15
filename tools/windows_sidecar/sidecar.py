@@ -3,6 +3,7 @@ import cv2
 import pyttsx3
 import subprocess
 import pyautogui
+import winsound
 import mss
 import base64
 import io
@@ -90,12 +91,17 @@ def open_url():
     subprocess.Popen(["powershell", "-c", f"Start-Process '{url}'"])
     return jsonify({"status": "opened", "url": url})
 
+@app.route("/beep", methods=["POST"])
+def beep():
+    subprocess.Popen([r"C:\Program Files\VideoLAN\VLC\vlc.exe", "--intf", "dummy", "--play-and-exit", r"C:\zyphos_sidecar\beep.wav"])
+    return jsonify({"status": "beeped"})
+
 @app.route("/play_audio", methods=["POST"])
 def play_audio():
     data = request.json
     path = data.get("path")
     print(f"PLAYING: {path}")
-    proc = subprocess.Popen([r"C:\vlc\vlc.exe", "--intf", "dummy", "--play-and-exit", path])
+    proc = subprocess.Popen([r"C:\Program Files\VideoLAN\VLC\vlc.exe", "--intf", "dummy", "--play-and-exit", path])
     print(f"VLC PID: {proc.pid}")
     return jsonify({"status": "playing", "path": path})
 
