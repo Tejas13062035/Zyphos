@@ -11,7 +11,7 @@ SIDECAR_URL = get_sidecar_url()
 
 def _ring(message: str):
     try:
-        requests.post(f"{SIDECAR_URL}/speak", json={"text": message})
+        from tools.sidecar import speak as _k; _k(message)
     except:
         print(f"TIMER: {message}")
 

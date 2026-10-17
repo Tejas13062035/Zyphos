@@ -30,7 +30,22 @@ def hotkey(keys: list):
 def _get_kokoro_url():
     return "http://localhost:8880/v1/audio/speech"
 
+def _strip_markdown(text: str) -> str:
+    """Remove markdown that sounds wrong read aloud (the Kokoro path has no filter of its own)."""
+    import re
+    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    text = re.sub(r"`([^`]*)`", r"\1", text)
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"^\s{0,3}(#{1,6}|[-*+]|\d+\.)\s+", "", text, flags=re.M)
+    text = re.sub(r"^\s*>\s?", "", text, flags=re.M)
+    text = re.sub(r"[*~#|]+", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def speak(text: str, voice: str = None):
+    text = _strip_markdown(text)
+    if not text:
+        return {"status": "error", "message": "no text provided"}
     if voice is None:
         from core.language_detect import get_voice_for_text
         voice = get_voice_for_text(text)

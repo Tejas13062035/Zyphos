@@ -45,7 +45,7 @@ def run(args: dict) -> dict:
         summary = f"{resolved_city}: {desc}, {temp}°C, feels like {feels}°C, humidity {humidity}%, wind {wind} m/s"
         if args.get("speak", False):
             try:
-                requests.post(f"{get_sidecar_url()}/speak", json={"text": summary})
+                from tools.sidecar import speak as _k; _k(summary)
             except:
                 pass
         return {

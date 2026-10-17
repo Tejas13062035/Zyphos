@@ -33,7 +33,7 @@ def run(args: dict) -> dict:
 
     if speak:
         try:
-            requests.post(f"{SIDECAR_URL}/speak", json={"text": summary})
+            from tools.sidecar import speak as _k; _k(summary)
         except:
             pass
 

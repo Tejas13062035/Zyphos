@@ -29,7 +29,7 @@ def log(msg):
 
 def speak(text):
     try:
-        requests.post(f"{SIDECAR_URL}/speak", json={"text": text}, timeout=5)
+        from tools.sidecar import speak as _k; _k(text)
     except Exception:
         pass
 

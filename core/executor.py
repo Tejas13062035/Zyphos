@@ -41,14 +41,13 @@ def execute_task(task: dict) -> dict:
         import requests as req
         now = datetime.datetime.now().strftime("%A, %B %d %Y, %I:%M %p")
         text = f"The current date and time is {now}"
-        req.post(f"{SIDECAR_URL}/speak", json={"text": text})
+        from tools.sidecar import speak as _k; _k(text)
         result = {"status": "spoken", "text": text}
 
     elif desc.startswith("speak ") or desc.startswith("say "):
         import requests as req
         text = desc.replace("speak ", "").replace("say ", "").strip()
-        r = req.post(f"{SIDECAR_URL}/speak", json={"text": text})
-        result = r.json()
+        from tools.sidecar import speak as _k; result = _k(text)
 
     elif "network" in desc or "scan" in desc or "devices" in desc:
         from plugins.network_scan import run as net_run

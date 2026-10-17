@@ -10,7 +10,7 @@ TOOL_ARGS = {"text": "str", "target_lang": "str (e.g. 'Spanish', 'French', 'Hind
 
 def _speak(text):
     try:
-        requests.post(f"{SIDECAR_URL}/speak", json={"text": text}, timeout=5)
+        from tools.sidecar import speak as _k; _k(text)
     except Exception:
         pass
 

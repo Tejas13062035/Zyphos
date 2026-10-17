@@ -39,7 +39,7 @@ LANGUAGE_VOICES = {
 
 def _speak(text: str, voice: str = ENGLISH_VOICE):
     try:
-        requests.post(f"{SIDECAR_URL}/speak", json={"text": text, "voice": voice}, timeout=120)
+        from tools.sidecar import speak as _k; _k(text)
     except Exception:
         pass
 
