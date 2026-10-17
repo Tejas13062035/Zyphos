@@ -83,8 +83,12 @@ def is_running() -> bool:
         return False
     try:
         os.kill(pid, 0)
-        return True
-    except ProcessLookupError:
+    except (ProcessLookupError, PermissionError):
+        return False   # PermissionError: the PID now belongs to another user's process (stale pid file)
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            return b"zyphos" in f.read()
+    except OSError:
         return False
 
 

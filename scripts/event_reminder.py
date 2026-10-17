@@ -90,7 +90,7 @@ def check_events():
         try:
             time_part, title = event_str.split(": ", 1)
             event_time = datetime.fromisoformat(time_part.strip())
-            minutes_until = (event_time.replace(tzinfo=None) - now).total_seconds() / 60
+            minutes_until = ((event_time.astimezone() if event_time.tzinfo else event_time).replace(tzinfo=None) - now).total_seconds() / 60
 
             for window in REMINDER_WINDOWS:
                 event_id = f"{time_part}_{title.strip()}_{window}min"

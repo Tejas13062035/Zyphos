@@ -4,6 +4,7 @@ echo "$(date): start_all.sh reached" >> /home/tejas_n/zyp/logs/taskscheduler_can
 cd ~/zyp
 source venv/bin/activate
 export PYTHONPATH="$PWD:$PYTHONPATH"
+export ZYPHOS_FACE_BACKEND=sface
 
 echo "Starting Kokoro TTS..."
 ~/zyp/scripts/start_kokoro.sh
@@ -47,10 +48,18 @@ sleep 1
 
 echo ""
 echo "Status:"
-pgrep -f "zyphos.py --daemon" > /dev/null && echo "  Daemon:   RUNNING" || echo "  Daemon:   FAILED"
-pgrep -f "watchdog.py" > /dev/null && echo "  Watchdog: RUNNING" || echo "  Watchdog: FAILED"
-pgrep -f "scripts/webui.py" > /dev/null && echo "  Web UI:   RUNNING" || echo "  Web UI:   FAILED"
-pgrep -f "scripts/webui_hud.py" > /dev/null && echo "  HUD UI:   RUNNING" || echo "  HUD UI:   FAILED"
-pgrep -f "event_reminder.py" > /dev/null && echo "  Reminder: RUNNING" || echo "  Reminder: FAILED"
-pgrep -f "uvicorn api.src.main:app" > /dev/null && echo "  Kokoro:   RUNNING" || echo "  Kokoro:   NOT RUNNING"
-pgrep -f "scripts/presence_watcher.py" > /dev/null && echo "  Watcher:  RUNNING" || echo "  Watcher:  NOT RUNNING"
+sleep 3
+check() {   # name, pattern, label-if-missing
+  for i in $(seq 1 20); do
+    if pgrep -f "$2" > /dev/null; then echo "  $1 RUNNING"; return; fi
+    sleep 1
+  done
+  echo "  $1 $3"
+}
+check "Daemon:  " "zyphos.py --daemon" FAILED
+check "Watchdog:" "scripts/watchdog.py" FAILED
+check "Web UI:  " "scripts/webui.py" FAILED
+check "HUD UI:  " "scripts/webui_hud.py" FAILED
+check "Reminder:" "event_reminder.py" FAILED
+check "Kokoro:  " "uvicorn api.src.main:app" "NOT RUNNING"
+check "Watcher: " "scripts/presence_watcher.py" "NOT RUNNING"

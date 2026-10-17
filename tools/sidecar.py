@@ -55,8 +55,7 @@ def speak_kokoro(text: str, voice: str = "am_onyx"):
         f.write(response.content)
 
     shutil.copy(audio_wsl, audio_win_wsl)
-    r = requests.post(f"{SIDECAR_URL}/play", json={"path": audio_win})   # blocks until playback finishes
-    return r.json()
+    return play_file(audio_win)
 
 
 import queue
@@ -116,4 +115,27 @@ def speak_fast(text: str, voice: str = None):
             break
         if "first_audio_s" not in speak_timing:
             speak_timing["first_audio_s"] = round(time.time() - t_start, 2)   # first sentence is ready and is sent to play
-        requests.post(f"{SIDECAR_URL}/play", json={"path": path})
+        play_file(path)
+
+
+_VLC_WSL = "/mnt/c/Program Files/VideoLAN/VLC/vlc.exe"
+_sidecar_down_until = 0.0
+
+
+def play_file(win_path: str):
+    """Play an mp3 given as a Windows path. Uses the sidecar when it is reachable,
+    otherwise launches VLC directly through WSL interop. Blocks until playback ends."""
+    global _sidecar_down_until
+    import os
+    import subprocess
+    import time
+    if time.time() >= _sidecar_down_until:
+        try:
+            r = requests.post(f"{SIDECAR_URL}/play", json={"path": win_path}, timeout=(1.5, None))
+            return r.json()
+        except requests.exceptions.ConnectionError:
+            _sidecar_down_until = time.time() + 60
+    if not os.path.exists(_VLC_WSL):
+        raise RuntimeError(f"sidecar unreachable and VLC not found at {_VLC_WSL}")
+    subprocess.run([_VLC_WSL, "--intf", "dummy", "--play-and-exit", win_path], capture_output=True)
+    return {"status": "played-direct"}

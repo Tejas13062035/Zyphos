@@ -477,6 +477,11 @@ HTML = """
     #goalInput { width: 32vw; min-width: 85px; font-size: 12px; }
   }
 
+  @media (max-width: 400px) {
+    #voiceWaveCanvas { display: none; }
+    #goalInput { min-width: 70px; }
+  }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--chrome-bright); }
@@ -747,10 +752,9 @@ buildSegBar('bar-react', 14, 13, 9);
 setInterval(() => {
   const now = new Date();
   const pad = n => String(n).padStart(2, '0');
-  const ms = String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0');
   const clk = document.getElementById('stark-clock');
-  if (clk) clk.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + ms;
-}, 75);
+  if (clk) clk.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+}, 250);
 
 const sparkCtx = document.getElementById('sparkCanvas').getContext('2d');
 const waveCtx = document.getElementById('voiceWaveCanvas').getContext('2d');
@@ -1025,7 +1029,12 @@ function buildGeometry() {
   }));
 }
 buildGeometry();
-window.addEventListener('resize', buildGeometry);
+let _lastW = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (window.innerWidth === _lastW) return;
+  _lastW = window.innerWidth;
+  buildGeometry();
+});
 
 function project(x, y, z) {
   const fov = 480;
@@ -1435,7 +1444,7 @@ function toggleConversationMode() {
 async function toggleRecording() {
   if (!isRecording) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 48000, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } });
       connectMicVisualizer(stream);
       mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 128000 });
       audioChunks = [];
