@@ -45,16 +45,12 @@ def is_webui_running():
     return bool(result.stdout.strip())
 
 def is_hud_running():
-    pid_file = os.path.expanduser("~/zyp/state/webui_hud.pid")
-    if not os.path.exists(pid_file):
-        return False
-    try:
-        with open(pid_file) as f:
-            pid = int(f.read().strip())
-        os.kill(pid, 0)
-        return True
-    except (ValueError, ProcessLookupError, OSError):
-        return False
+    # check the process itself: start_all.sh launches the HUD without writing the pid file
+    result = subprocess.run(
+        ["pgrep", "-f", "scripts/webui_hud.py"],
+        capture_output=True, text=True
+    )
+    return bool(result.stdout.strip())
 
 def restart_webui():
     log("WATCHDOG: webui down — restarting...")
