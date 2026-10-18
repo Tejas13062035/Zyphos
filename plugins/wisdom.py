@@ -63,37 +63,67 @@ def _get_dialogue(theme="", author=""):
     return result.strip()
 
 
+NARRATOR_VOICE = "am_onyx"
+STUDENT_VOICE = "af_nova"
+PHILOSOPHER_VOICE = "bm_fable"
+
+
+NARRATOR_VOICE = "am_onyx"
+STUDENT_VOICE = "af_nova"
+PHILOSOPHER_VOICE = "bm_fable"
+
+
+NARRATOR_VOICE = "am_onyx"
+STUDENT_VOICE = "af_nova"
+PHILOSOPHER_VOICE = "bm_fable"
+
+
+NARRATOR_VOICE = "am_echo"
+STUDENT_VOICE = "af_nova"
+PHILOSOPHER_VOICE = "af_sky"
+
+
 def _speak_dialogue(dialogue_text: str):
-    lines_raw = [l.strip() for l in dialogue_text.split("\n") if l.strip() and ":" in l]
+    import queue
+    import threading
+    from tools.sidecar import _kokoro_file, play_file, _strip_markdown
 
-    voices = ["en-GB-RyanNeural", "en-US-AriaNeural"]
-    voice_map = {}
-    next_voice_idx = 0
     batch = []
-
-    for line in lines_raw:
+    for line in [l.strip() for l in dialogue_text.split("\n") if l.strip() and ":" in l]:
         speaker, _, text = line.partition(":")
-        speaker = speaker.strip()
-        text = text.strip()
-
-        if speaker.upper() == "MORAL":
-            batch.append({"text": f"The moral is: {text}", "voice": voices[0]})
+        speaker, text = speaker.strip().upper(), _strip_markdown(text.strip())
+        if not text:
             continue
+        if speaker == "MORAL":
+            batch.append((f"The moral is: {text}", NARRATOR_VOICE))
+        elif speaker == "STUDENT":
+            batch.append((text, STUDENT_VOICE))
+        else:
+            batch.append((text, PHILOSOPHER_VOICE))
+    if not batch:
+        return
 
-        if speaker not in voice_map:
-            voice_map[speaker] = voices[next_voice_idx % len(voices)]
-            next_voice_idx += 1
+    q = queue.Queue(maxsize=2)
 
-        batch.append({"text": text, "voice": voice_map[speaker]})
+    def producer():
+        try:
+            for text, voice in batch:
+                q.put(_kokoro_file(text, voice))
+        except Exception as e:
+            print(f"[wisdom] speech generation failed: {e}")
+        finally:
+            q.put(None)
 
-    try:
-        requests.post(
-            f"{get_sidecar_url()}/speak_batch",
-            json={"lines": batch},
-            timeout=60
-        )
-    except Exception:
-        pass
+    threading.Thread(target=producer, daemon=True).start()
+    while True:
+        path = q.get()
+        if path is None:
+            break
+        try:
+            play_file(path)
+        except Exception as e:
+            print(f"[wisdom] playback failed: {e}")
+            break
 
 def run(args: dict) -> dict:
     mode = args.get("mode", "quote").lower()
